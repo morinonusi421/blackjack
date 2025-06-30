@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
 // CORSを許可するためのミドルウェア
@@ -44,12 +46,12 @@ func main() {
 		port = "8080"
 	}
 
-	// ハンドラを登録
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/hello", helloHandler)
+	// ルーターを作成
+	router := mux.NewRouter()
+	router.HandleFunc("/api/hello", helloHandler).Methods("GET")
 
 	// ミドルウェアを適用したハンドラ
-	handlerWithCors := corsMiddleware(mux)
+	handlerWithCors := corsMiddleware(router)
 
 	log.Println("Server starting on port " + port)
 	// サーバーを起動
