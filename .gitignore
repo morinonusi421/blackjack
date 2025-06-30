@@ -1,0 +1,12 @@
+# Go
+/api/server
+/api/*.exe
+
+# Node / Next.js
+/web/node_modules
+/web/.next/
+/web/out/
+/web/.env*.local
+
+# OS
+.DS_Store
