@@ -1,10 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+
+	"blackjack/api/handlers"
 
 	"github.com/gorilla/mux"
 )
@@ -28,17 +29,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	// レスポンスのContent-TypeをJSONに設定
-	w.Header().Set("Content-Type", "application/json")
-
-	// 返却するデータを作成
-	response := map[string]string{"message": "Hello, World!"}
-
-	// JSONにエンコードしてレスポンスとして書き出す
-	json.NewEncoder(w).Encode(response)
-}
-
 func main() {
 	// render.comが設定するPORT環境変数を取得。なければ8080を使う
 	port := os.Getenv("PORT")
@@ -48,7 +38,8 @@ func main() {
 
 	// ルーターを作成
 	router := mux.NewRouter()
-	router.HandleFunc("/api/hello", helloHandler).Methods("GET")
+	router.HandleFunc("/api/hello", handlers.HelloHandler).Methods("GET")
+	router.HandleFunc("/api/random_number", handlers.RandomNumberHandler).Methods("GET")
 
 	// ミドルウェアを適用したハンドラ
 	handlerWithCors := corsMiddleware(router)
