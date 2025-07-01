@@ -2,14 +2,9 @@ package service
 
 import (
 	"math/rand"
-	"time"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
-// RandomOneToThree は1〜3の乱数を返します。
-func RandomOneToThree() int {
-	return rand.Intn(3) + 1
+// RandomOneToThirteen は1〜13の乱数を返します。
+func RandomOneToThirteen() int {
+	return rand.Intn(13) + 1
 }

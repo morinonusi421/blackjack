@@ -16,6 +16,6 @@ type RandomNumberResponse struct {
 func RandomNumberHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	resp := RandomNumberResponse{Number: service.RandomOneToThree()}
+	resp := RandomNumberResponse{Number: service.RandomOneToThirteen()}
 	json.NewEncoder(w).Encode(resp)
 }
