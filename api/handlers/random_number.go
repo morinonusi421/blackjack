@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"blackjack/api/service"
+	"blackjack/api/services"
 )
 
 // RandomNumberResponse は乱数を JSON で返すレスポンス構造体
@@ -16,6 +16,6 @@ type RandomNumberResponse struct {
 func RandomNumberHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	resp := RandomNumberResponse{Number: service.RandomOneToThirteen()}
+	resp := RandomNumberResponse{Number: services.RandomOneToThirteen()}
 	json.NewEncoder(w).Encode(resp)
 }
