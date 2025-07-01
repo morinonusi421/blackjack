@@ -46,6 +46,9 @@ func main() {
 	// 依存性注入したハンドラを登録
 	router.HandleFunc("/api/random_number", handlers.NewRandomNumberHandler(randomGenerator)).Methods("GET")
 
+	// ヘルスチェックエンドポイント
+	router.HandleFunc("/api/health", handlers.HealthHandler).Methods("GET")
+
 	// ミドルウェアを適用したハンドラ
 	handlerWithCors := corsMiddleware(router)
 
