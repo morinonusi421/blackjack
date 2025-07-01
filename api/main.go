@@ -38,7 +38,6 @@ func main() {
 
 	// ルーターを作成
 	router := mux.NewRouter()
-	router.HandleFunc("/api/hello", handlers.HelloHandler).Methods("GET")
 	router.HandleFunc("/api/random_number", handlers.RandomNumberHandler).Methods("GET")
 
 	// ミドルウェアを適用したハンドラ
