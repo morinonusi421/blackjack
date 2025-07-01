@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"blackjack/api/handlers"
+	"blackjack/api/services"
 
 	"github.com/gorilla/mux"
 )
@@ -38,7 +39,12 @@ func main() {
 
 	// ルーターを作成
 	router := mux.NewRouter()
-	router.HandleFunc("/api/random_number", handlers.RandomNumberHandler).Methods("GET")
+
+	// 依存性の生成
+	randomGenerator := services.NewRandomNumberGenerator()
+
+	// 依存性注入したハンドラを登録
+	router.HandleFunc("/api/random_number", handlers.NewRandomNumberHandler(randomGenerator)).Methods("GET")
 
 	// ミドルウェアを適用したハンドラ
 	handlerWithCors := corsMiddleware(router)
