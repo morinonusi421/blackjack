@@ -19,6 +19,9 @@ export default function Home() {
       }}
     >
       <BlackjackClient />
+      <p>
+        &quot;エラー: Failed to fetch&quot;が発生した時は、バックエンドサーバーがまだ眠っています。（無料サーバーなのですぐスリープしてしまいます）壊れてなければ、数分待つと動きます。
+      </p>
     </main>
   );
 }
