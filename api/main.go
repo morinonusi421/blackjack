@@ -42,9 +42,13 @@ func main() {
 
 	// 依存性の生成
 	randomGenerator := services.NewRandomNumberGenerator()
+	gameService := services.NewGameService()
 
 	// 依存性注入したハンドラを登録
 	router.HandleFunc("/api/random_number", handlers.NewRandomNumberHandler(randomGenerator)).Methods("GET")
+
+	// ゲームエンドポイント
+	router.HandleFunc("/api/game/new", handlers.NewGameHandler(gameService)).Methods("POST")
 
 	// ヘルスチェックエンドポイント
 	router.HandleFunc("/api/health", handlers.HealthHandler).Methods("GET")
