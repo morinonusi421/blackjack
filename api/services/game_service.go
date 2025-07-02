@@ -14,11 +14,16 @@ type GameService interface {
 	NewGame(bet int) (game.Game, error)
 }
 
-type gameService struct{}
+type gameService struct {
+	deck game.Deck
+}
 
-// NewGameService はゲームサービスのデフォルト実装を返します。
-func NewGameService() GameService {
-	return &gameService{}
+// NewGameServiceは Deck を受け取りゲームサービスを生成します。
+func NewGameService(deck game.Deck) GameService {
+	if deck == nil {
+		panic("deck must not be nil")
+	}
+	return &gameService{deck: deck}
 }
 
 // NewGame は掛け金を受け取り、新しいゲームを初期化して返します。
@@ -28,8 +33,8 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 		return game.Game{}, errors.New("bet must be positive")
 	}
 
-	playerCards := []game.Card{game.NewRandomCard(), game.NewRandomCard()}
-	dealerCards := []game.Card{game.NewRandomCard()}
+	playerCards := []game.Card{s.deck.Deal(), s.deck.Deal()}
+	dealerCards := []game.Card{s.deck.Deal()}
 
 	playerScore := game.CalculateScore(playerCards)
 	dealerScore := game.CalculateScore(dealerCards)

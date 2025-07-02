@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"blackjack/api/game"
 	"blackjack/api/handlers"
 	"blackjack/api/services"
 
@@ -42,7 +43,7 @@ func main() {
 
 	// 依存性の生成
 	randomGenerator := services.NewRandomNumberGenerator()
-	gameService := services.NewGameService()
+	gameService := services.NewGameService(&game.RandomDeck{})
 
 	// 依存性注入したハンドラを登録
 	router.HandleFunc("/api/random_number", handlers.NewRandomNumberHandler(randomGenerator)).Methods("GET")

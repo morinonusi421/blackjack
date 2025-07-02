@@ -1,9 +1,5 @@
 package game
 
-import (
-	"math/rand"
-)
-
 type Suit string
 
 const (
@@ -79,14 +75,6 @@ var rankScoreMap = map[Rank]int{
 // ランクからデフォルトスコアへの変換を行うヘルパー関数。
 func rankToScore(rank Rank) int {
 	return rankScoreMap[rank]
-}
-
-// NewRandomCard はランダムなカードを 1 枚生成して返します。
-func NewRandomCard() Card {
-	return Card{
-		Suit: suits[rand.Intn(len(suits))],
-		Rank: ranks[rand.Intn(len(ranks))],
-	}
 }
 
 // CalculateScore は手札のスコアを計算して返します。
