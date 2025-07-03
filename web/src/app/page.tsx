@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import GameClient from './GameClient';
 
 export const metadata: Metadata = {
   title: 'ブラックジャック'
@@ -17,6 +18,7 @@ export default function Home() {
         gap: '24px',
       }}
     >
+      <GameClient />
       <p>
         &quot;エラー: Failed to fetch&quot;が発生した時は、バックエンドサーバーがまだ眠っています。（無料サーバーなのですぐスリープしてしまいます）壊れてなければ、数分待つと動きます。
       </p>
