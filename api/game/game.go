@@ -27,7 +27,7 @@ type Hand struct {
 	Score int    `json:"score"`
 }
 
-// GameState はゲームの状態を表します。
+// GameState はゲームの進行状況を表します。
 type GameState string
 
 const (
