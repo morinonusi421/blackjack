@@ -12,6 +12,7 @@ export default function useGame(apiUrl?: string | null) {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState(10000);
 
   /**
    * ゲームを開始します。
@@ -28,6 +29,14 @@ export default function useGame(apiUrl?: string | null) {
         setError('掛け金は 1 以上で入力してください。');
         return;
       }
+      if (balance <= 0) {
+        setError('所持金がありません。');
+        return;
+      }
+      if (bet > balance) {
+        setError('所持金が不足しています。');
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -42,6 +51,7 @@ export default function useGame(apiUrl?: string | null) {
         if (!res.ok) throw new Error('APIからの応答がありませんでした');
         const result: Game = await res.json();
         setGame(result);
+        setBalance((prev) => prev - bet + result.balance_change);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -52,7 +62,7 @@ export default function useGame(apiUrl?: string | null) {
         setLoading(false);
       }
     },
-    [apiUrl],
+    [apiUrl, balance],
   );
 
   return {
@@ -60,5 +70,6 @@ export default function useGame(apiUrl?: string | null) {
     loading,
     error,
     startGame,
+    balance,
   } as const;
 } 
