@@ -46,7 +46,7 @@ export default function GameInfo({ game }: GameInfoProps) {
         <p style={{ margin: 0 }}>結果: {game.result}</p>
         {game.result_message && <p style={{ margin: 0 }}>メッセージ: {game.result_message}</p>}
         <p style={{ margin: 0 }}>掛け金: {game.bet}</p>
-        <p style={{ margin: 0 }}>このゲームでのチップ増減: {game.balance_change}</p>
+        <p style={{ margin: 0 }}>返ってきたチップ: {game.balance_change}</p>
       </div>
     </section>
   );
