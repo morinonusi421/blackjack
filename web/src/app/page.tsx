@@ -1,4 +1,3 @@
-import BlackjackClient from './BlackjackClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -18,7 +17,6 @@ export default function Home() {
         gap: '24px',
       }}
     >
-      <BlackjackClient />
       <p>
         &quot;エラー: Failed to fetch&quot;が発生した時は、バックエンドサーバーがまだ眠っています。（無料サーバーなのですぐスリープしてしまいます）壊れてなければ、数分待つと動きます。
       </p>

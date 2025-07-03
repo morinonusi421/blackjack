@@ -42,11 +42,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// 依存性の生成
-	randomGenerator := services.NewRandomNumberGenerator()
 	gameService := services.NewGameService(&game.RandomDeck{})
-
-	// 依存性注入したハンドラを登録
-	router.HandleFunc("/api/random_number", handlers.NewRandomNumberHandler(randomGenerator)).Methods("GET")
 
 	// ゲームエンドポイント
 	router.HandleFunc("/api/game/new", handlers.NewGameHandler(gameService)).Methods("POST")
