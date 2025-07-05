@@ -47,6 +47,9 @@ func main() {
 	// ゲームエンドポイント
 	router.HandleFunc("/api/game/new", handlers.NewGameHandler(gameService)).Methods("POST")
 
+	// スタンドエンドポイント
+	router.HandleFunc("/api/game/stand", handlers.StandHandler(gameService)).Methods("POST")
+
 	// ヘルスチェックエンドポイント
 	router.HandleFunc("/api/health", handlers.HealthHandler).Methods("GET")
 

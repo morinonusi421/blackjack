@@ -24,6 +24,12 @@ func (m mockGameService) NewGame(bet int) (game.Game, error) {
 	return m.retGame, m.retErr
 }
 
+// ダミー実装: テスト対象外
+func (m mockGameService) Stand(g *game.Game) error {
+	// ダミー: 何もしない
+	return nil
+}
+
 func TestNewGameHandler_ReturnsGameJSON(t *testing.T) {
 	// 期待する Game オブジェクト
 	expectedBet := 100

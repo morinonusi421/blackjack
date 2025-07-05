@@ -29,11 +29,11 @@ func TestGameService_NewGame_ValidBet(t *testing.T) {
 	bet := 100
 
 	cases := []struct {
-		name              string
-		deckCards         []game.Card
-		expectState       game.GameState
-		expectResult      game.Result
-		expectBalanceDiff int
+		name                string
+		deckCards           []game.Card
+		expectState         game.GameState
+		expectResult        game.Result
+		expectBalanceChange int
 	}{
 		{
 			name: "blackjack",
@@ -42,9 +42,9 @@ func TestGameService_NewGame_ValidBet(t *testing.T) {
 				{Suit: game.Heart, Rank: "10"}, // プレイヤー 21
 				{Suit: game.Club, Rank: "9"},   // ディーラー
 			},
-			expectState:       game.Finished,
-			expectResult:      game.PlayerWin,
-			expectBalanceDiff: bet * 3 / 2,
+			expectState:         game.Finished,
+			expectResult:        game.PlayerWin,
+			expectBalanceChange: bet * 3 / 2,
 		},
 		{
 			name: "non-blackjack",
@@ -53,9 +53,9 @@ func TestGameService_NewGame_ValidBet(t *testing.T) {
 				{Suit: game.Heart, Rank: "7"}, // プレイヤー 16
 				{Suit: game.Club, Rank: "5"},  // ディーラー
 			},
-			expectState:       game.PlayerTurn,
-			expectResult:      game.Pending,
-			expectBalanceDiff: 0,
+			expectState:         game.PlayerTurn,
+			expectResult:        game.Pending,
+			expectBalanceChange: 0,
 		},
 	}
 
@@ -81,8 +81,82 @@ func TestGameService_NewGame_ValidBet(t *testing.T) {
 			t.Fatalf("%s: expected state=%s result=%s, got state=%s result=%s", tc.name, tc.expectState, tc.expectResult, g.State, g.Result)
 		}
 
-		if g.BalanceChange != tc.expectBalanceDiff {
-			t.Fatalf("%s: expected balance change %d, got %d", tc.name, tc.expectBalanceDiff, g.BalanceChange)
+		if g.BalanceChange != tc.expectBalanceChange {
+			t.Fatalf("%s: expected balance change %d, got %d", tc.name, tc.expectBalanceChange, g.BalanceChange)
+		}
+	}
+}
+
+func TestGameService_Stand(t *testing.T) {
+	bet := 100
+
+	type scenario struct {
+		name                string
+		playerCards         []game.Card // プレイヤー初期手札
+		dealerCards         []game.Card // ディーラー初期手札 (1 枚を想定)
+		deckCards           []game.Card // ディーラーがヒットで引くカード（必要に応じて）
+		expectResult        game.Result
+		expectBalanceChange int
+	}
+
+	cases := []scenario{
+		{
+			name:                "dealer bust -> player win",
+			playerCards:         []game.Card{{Suit: game.Spade, Rank: "10"}, {Suit: game.Heart, Rank: "7"}},  // 17
+			dealerCards:         []game.Card{{Suit: game.Club, Rank: "10"}},                                  // 10 (<17)
+			deckCards:           []game.Card{{Suit: game.Diamond, Rank: "6"}, {Suit: game.Spade, Rank: "8"}}, // 10+6=16, then 24→bust
+			expectResult:        game.PlayerWin,
+			expectBalanceChange: bet * 2,
+		},
+		{
+			name:                "dealer higher score -> dealer win",
+			playerCards:         []game.Card{{Suit: game.Spade, Rank: "10"}, {Suit: game.Heart, Rank: "6"}}, // 16
+			dealerCards:         []game.Card{{Suit: game.Club, Rank: "10"}},                                 // 10
+			deckCards:           []game.Card{{Suit: game.Diamond, Rank: "8"}},                               // 18
+			expectResult:        game.DealerWin,
+			expectBalanceChange: 0,
+		},
+		{
+			name:                "push",
+			playerCards:         []game.Card{{Suit: game.Spade, Rank: "10"}, {Suit: game.Heart, Rank: "8"}}, // 18
+			dealerCards:         []game.Card{{Suit: game.Club, Rank: "9"}},                                  // 9
+			deckCards:           []game.Card{{Suit: game.Diamond, Rank: "9"}},                               // 18 tie
+			expectResult:        game.Push,
+			expectBalanceChange: bet, // 掛け金返却
+		},
+		{
+			name:                "player higher score -> player win",
+			playerCards:         []game.Card{{Suit: game.Spade, Rank: "10"}, {Suit: game.Heart, Rank: "9"}}, // 19
+			dealerCards:         []game.Card{{Suit: game.Club, Rank: "10"}},                                 // 10
+			deckCards:           []game.Card{{Suit: game.Diamond, Rank: "8"}},                               // 18 (<21, >=17)
+			expectResult:        game.PlayerWin,
+			expectBalanceChange: bet * 2,
+		},
+	}
+
+	for _, tc := range cases {
+		deck := &mockDeck{cards: tc.deckCards}
+		svc := NewGameService(deck)
+
+		// ゲーム状態を構築
+		g := game.Game{
+			PlayerHand: game.Hand{Cards: tc.playerCards, Score: game.CalculateScore(tc.playerCards)},
+			DealerHand: game.Hand{Cards: tc.dealerCards, Score: game.CalculateScore(tc.dealerCards)},
+			Bet:        bet,
+			State:      game.PlayerTurn,
+			Result:     game.Pending,
+		}
+
+		if err := svc.Stand(&g); err != nil {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+
+		if g.Result != tc.expectResult {
+			t.Fatalf("%s: expected result %s, got %s", tc.name, tc.expectResult, g.Result)
+		}
+
+		if g.BalanceChange != tc.expectBalanceChange {
+			t.Fatalf("%s: expected balance change %d, got %d", tc.name, tc.expectBalanceChange, g.BalanceChange)
 		}
 	}
 }
