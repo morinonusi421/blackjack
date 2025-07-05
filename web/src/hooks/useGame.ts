@@ -21,6 +21,12 @@ export default function useGame(apiUrl?: string | null) {
    */
   const startGame = useCallback(
     async (bet: number) => {
+      // すでにゲームが進行中の場合は新しいゲームを開始しない
+      if (game?.state === 'PlayerTurn') {
+        setError('ゲームが進行中です。');
+        return;
+      }
+
       if (!apiUrl) {
         setError('APIのURLが設定されていません。');
         return;
@@ -62,7 +68,7 @@ export default function useGame(apiUrl?: string | null) {
         setLoading(false);
       }
     },
-    [apiUrl, balance],
+    [apiUrl, balance, game],
   );
 
   /**

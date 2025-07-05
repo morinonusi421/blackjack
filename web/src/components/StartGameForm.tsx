@@ -5,9 +5,10 @@ interface StartGameFormProps {
   onBetChange: (val: number) => void;
   loading: boolean;
   onStart: () => void;
+  disabled?: boolean;
 }
 
-export default function StartGameForm({ bet, onBetChange, loading, onStart }: StartGameFormProps) {
+export default function StartGameForm({ bet, onBetChange, loading, onStart, disabled = false }: StartGameFormProps) {
   return (
     <div
       style={{
@@ -28,6 +29,7 @@ export default function StartGameForm({ bet, onBetChange, loading, onStart }: St
         min={1}
         value={bet}
         onChange={(e) => onBetChange(Number(e.target.value))}
+        disabled={disabled || loading}
         style={{
           padding: '6px 10px',
           width: '120px',
@@ -37,7 +39,7 @@ export default function StartGameForm({ bet, onBetChange, loading, onStart }: St
       />
       <button
         onClick={onStart}
-        disabled={loading}
+        disabled={loading || disabled}
         style={{
           padding: '8px 20px',
           backgroundColor: '#0070f3',
@@ -51,7 +53,7 @@ export default function StartGameForm({ bet, onBetChange, loading, onStart }: St
           transition: 'opacity 0.2s',
         }}
       >
-        {loading ? '開始中...' : 'ゲーム開始'}
+        {disabled ? '進行中' : loading ? '開始中...' : 'ゲーム開始'}
       </button>
     </div>
   );

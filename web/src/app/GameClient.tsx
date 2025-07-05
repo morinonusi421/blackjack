@@ -70,6 +70,8 @@ export default function GameClient() {
     startGame(bet);
   };
 
+  const gameInProgress = game?.state === 'PlayerTurn';
+
   return (
     <section
       style={{
@@ -88,6 +90,7 @@ export default function GameClient() {
         onBetChange={setBet}
         loading={loading}
         onStart={handleStart}
+        disabled={gameInProgress}
       />
 
       {/* エラーメッセージ */}
