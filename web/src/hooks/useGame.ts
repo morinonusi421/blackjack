@@ -65,11 +65,52 @@ export default function useGame(apiUrl?: string | null) {
     [apiUrl, balance],
   );
 
+  /**
+   * スタンド（カード引き止め）を行う。
+   * 現在の game を API に送り、結果を受け取って状態と所持金を更新する。
+   */
+  const stand = useCallback(async () => {
+    if (!apiUrl) {
+      setError('APIのURLが設定されていません。');
+      return;
+    }
+    if (!game) {
+      setError('ゲームが開始されていません。');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/game/stand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(game),
+      });
+
+      if (!res.ok) throw new Error('APIからの応答がありませんでした');
+      const result: Game = await res.json();
+      setGame(result);
+      // 返ってきたチップを所持金に加算
+      setBalance((prev) => prev + result.payout);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('不明なエラーが発生しました');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [apiUrl, game]);
+
   return {
     game,
     loading,
     error,
     startGame,
+    stand,
     balance,
   } as const;
 } 
