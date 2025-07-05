@@ -52,8 +52,8 @@ type Game struct {
 	State         GameState `json:"state"`
 	Result        Result    `json:"result"`
 	ResultMessage string    `json:"result_message"`
-	Bet           int       `json:"bet"`            // 掛け金
-	BalanceChange int       `json:"balance_change"` // 試合結果による純増減（+勝ち, -負け）
+	Bet           int       `json:"bet"`    // 掛け金
+	Payout        int       `json:"payout"` // 払戻金（勝利額／Push はベット返却）
 }
 
 var rankScoreMap = map[Rank]int{

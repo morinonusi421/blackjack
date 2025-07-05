@@ -51,7 +51,7 @@ export default function useGame(apiUrl?: string | null) {
         if (!res.ok) throw new Error('APIからの応答がありませんでした');
         const result: Game = await res.json();
         setGame(result);
-        setBalance((prev) => prev - bet + result.balance_change);
+        setBalance((prev) => prev - bet + result.payout);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);

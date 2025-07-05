@@ -18,5 +18,5 @@ export interface Game {
   result: Result;
   result_message: string;
   bet: number;
-  balance_change: number;
+  payout: number;
 } 

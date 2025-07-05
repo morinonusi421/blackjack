@@ -51,7 +51,7 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 		Bet:           bet,
 		Result:        game.Pending,
 		ResultMessage: "",
-		BalanceChange: 0,
+		Payout:        0,
 	}
 
 	// ブラックジャック判定
@@ -59,7 +59,7 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 		g.State = game.Finished
 		g.Result = game.PlayerWin
 		g.ResultMessage = "Blackjack! Player wins."
-		g.BalanceChange = bet * 3 / 2 // 1.5 倍
+		g.Payout = bet * 3 / 2 // 1.5 倍
 	}
 
 	return g, nil
@@ -101,9 +101,9 @@ func (s *gameService) Stand(g *game.Game) error {
 
 	// 結果判定
 	var (
-		result  game.Result
-		balance int
-		msg     string
+		result game.Result
+		payout int
+		msg    string
 	)
 
 	playerScore := g.PlayerHand.Score
@@ -111,26 +111,26 @@ func (s *gameService) Stand(g *game.Game) error {
 	switch {
 	case dealerScore > 21:
 		result = game.PlayerWin
-		balance = g.Bet * 2
+		payout = g.Bet * 2
 		msg = "Dealer busts! Player wins."
 	case dealerScore < playerScore:
 		result = game.PlayerWin
-		balance = g.Bet * 2
+		payout = g.Bet * 2
 		msg = "Player wins."
 	case dealerScore > playerScore:
 		result = game.DealerWin
-		balance = 0
+		payout = 0
 		msg = "Dealer wins."
 	default: // 引き分け
 		result = game.Push
-		balance = g.Bet // 掛け金を返却
+		payout = g.Bet // 掛け金を返却
 		msg = "Push. Bet returned."
 	}
 
 	g.State = game.Finished
 	g.Result = result
 	g.ResultMessage = msg
-	g.BalanceChange = balance
+	g.Payout = payout
 
 	return nil
 }

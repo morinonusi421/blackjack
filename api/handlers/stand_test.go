@@ -20,7 +20,7 @@ func (m mockStandService) Stand(g *game.Game) error {
 	// ダミーで引き分けを返す
 	g.State = game.Finished
 	g.Result = game.Push
-	g.BalanceChange = g.Bet
+	g.Payout = g.Bet
 	return nil
 }
 
@@ -41,7 +41,6 @@ func TestStandHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 
 	svc := mockStandService{}
 
-	// ハンドラー生成
 	handler := StandHandler(svc)
 
 	body, _ := json.Marshal(g)
@@ -68,7 +67,7 @@ func TestStandHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 		t.Fatalf("expected result Push, got %s", resp.Result)
 	}
 
-	if resp.BalanceChange != bet {
-		t.Fatalf("expected balance change %d, got %d", bet, resp.BalanceChange)
+	if resp.Payout != bet {
+		t.Fatalf("expected payout %d, got %d", bet, resp.Payout)
 	}
 }
