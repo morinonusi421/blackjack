@@ -69,7 +69,7 @@ export default function useGame(apiUrl?: string | null) {
       }
     },
     [apiUrl, balance, game],
-  );
+  )
 
   /**
    * スタンド（カード引き止め）を行う。
@@ -153,6 +153,47 @@ export default function useGame(apiUrl?: string | null) {
     }
   }, [apiUrl, game]);
 
+  /**
+   * サレンダー（降参）を行う。
+   * 現在の game を API に送り、結果を受け取って状態と所持金を更新する。
+   * 掛け金の半分を失い、ゲームを終了する。
+   */
+  const surrender = useCallback(async () => {
+    if (!apiUrl) {
+      setError('APIのURLが設定されていません。');
+      return;
+    }
+    if (!game) {
+      setError('ゲームが開始されていません。');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/game/surrender`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(game),
+      });
+
+      if (!res.ok) throw new Error('APIからの応答がありませんでした');
+      const result: Game = await res.json();
+      setGame(result);
+      // 払戻金を所持金に反映
+      setBalance((prev) => prev + result.payout);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('不明なエラーが発生しました');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [apiUrl, game]);
+
   return {
     game,
     loading,
@@ -160,6 +201,7 @@ export default function useGame(apiUrl?: string | null) {
     startGame,
     stand,
     hit,
+    surrender,
     balance,
   } as const;
 } 

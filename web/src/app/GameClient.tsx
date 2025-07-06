@@ -10,12 +10,15 @@ import ActionButtons from '../components/ActionButtons';
 
 export default function GameClient() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const { game, loading, error, startGame, stand, hit, balance } = useGame(apiUrl);
+  const { game, loading, error, startGame, stand, hit, surrender, balance } = useGame(apiUrl);
   const [bet, setBet] = useState(100);
 
   const handleStart = () => {
     startGame(bet);
   };
+
+  // サレンダーは最初の2枚のカードを受け取った後にのみ可能
+  const canSurrender = game?.player_hand.cards.length === 2;
 
   const gameInProgress = game?.state === 'PlayerTurn';
 
@@ -46,9 +49,15 @@ export default function GameClient() {
       {/* ゲーム状況表示 */}
       <GameInfo game={game} />
 
-      {/* Hit / Stand アクション */}
+      {/* Hit / Stand / Surrender アクション */}
       {game && game.state === 'PlayerTurn' && (
-        <ActionButtons onHit={hit} onStand={stand} disabled={loading} />
+        <ActionButtons 
+          onHit={hit} 
+          onStand={stand} 
+          onSurrender={surrender} 
+          canSurrender={canSurrender}
+          disabled={loading} 
+        />
       )}
     </section>
   );
