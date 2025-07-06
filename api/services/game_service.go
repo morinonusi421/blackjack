@@ -75,11 +75,11 @@ func (s *gameService) Stand(g *game.Game) error {
 	}
 
 	// プレイヤーは 2 枚、ディーラーは 1 枚以上の手札が必要
-	if len(g.PlayerHand.Cards) != 2 {
-		return errors.New("invalid state: player must have exactly 2 cards")
+	if len(g.PlayerHand.Cards) < 2 {
+		return errors.New("invalid state: player must have at least 2 cards")
 	}
-	if len(g.DealerHand.Cards) < 1 {
-		return errors.New("invalid state: dealer must have at least 1 card")
+	if len(g.DealerHand.Cards) != 1 {
+		return errors.New("invalid state: dealer must have exactly 1 card")
 	}
 
 	// ゲーム結果がまだ確定していないことを確認
