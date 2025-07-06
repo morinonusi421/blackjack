@@ -14,6 +14,7 @@ type GameService interface {
 	NewGame(bet int) (game.Game, error)
 	// Stand はプレイヤーがスタンドした後のディーラー処理を行い、current を更新して結果を反映します。
 	Stand(g *game.Game) error
+	Hit(g *game.Game) error
 }
 
 type gameService struct {
@@ -132,5 +133,46 @@ func (s *gameService) Stand(g *game.Game) error {
 	g.ResultMessage = msg
 	g.Payout = payout
 
+	return nil
+}
+
+func (s *gameService) Hit(g *game.Game) error {
+	// 引数チェック
+	if g == nil {
+		return errors.New("game must not be nil")
+	}
+
+	// ゲーム状態がプレイヤーターンであることを確認
+	if g.State != game.PlayerTurn {
+		return errors.New("invalid state: game is not in player turn")
+	}
+
+	// 既に結果が確定していないか確認
+	if g.Result != game.Pending {
+		return errors.New("invalid state: game already finished")
+	}
+
+	// 1 枚カードを配る
+	card := s.deck.Deal()
+	g.PlayerHand.Cards = append(g.PlayerHand.Cards, card)
+	g.PlayerHand.Score = game.CalculateScore(g.PlayerHand.Cards)
+
+	playerScore := g.PlayerHand.Score
+
+	// バーストチェック
+	if playerScore > 21 {
+		g.State = game.Finished
+		g.Result = game.DealerWin
+		g.ResultMessage = "Player busts! Dealer wins."
+		g.Payout = 0
+		return nil
+	}
+
+	// 21 ちょうどの場合は自動的にスタンド相当の処理を行う
+	if playerScore == 21 {
+		return s.Stand(g)
+	}
+
+	// それ以外（21 未満）の場合は引き続きプレイヤーターン
 	return nil
 }

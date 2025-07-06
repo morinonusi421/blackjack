@@ -160,3 +160,77 @@ func TestGameService_Stand(t *testing.T) {
 		}
 	}
 }
+
+func TestGameService_Hit(t *testing.T) {
+	bet := 100
+
+	type scenario struct {
+		name         string
+		playerCards  []game.Card
+		dealerCards  []game.Card
+		deckCards    []game.Card // Hit で引くカード、その後 Stand で使うカード
+		expectState  game.GameState
+		expectResult game.Result
+		expectPayout int
+	}
+
+	cases := []scenario{
+		{
+			name:         "player busts",
+			playerCards:  []game.Card{{Suit: game.Spade, Rank: "10"}, {Suit: game.Heart, Rank: "2"}}, // 12
+			dealerCards:  []game.Card{{Suit: game.Club, Rank: "9"}},                                  // 9
+			deckCards:    []game.Card{{Suit: game.Diamond, Rank: "K"}},                               // 12+10 = 22 -> bust
+			expectState:  game.Finished,
+			expectResult: game.DealerWin,
+			expectPayout: 0,
+		},
+		{
+			name:        "hit to 21 -> player win after dealer play",
+			playerCards: []game.Card{{Suit: game.Spade, Rank: "5"}, {Suit: game.Heart, Rank: "6"}}, // 11
+			dealerCards: []game.Card{{Suit: game.Club, Rank: "10"}},                                // 10
+			deckCards: []game.Card{
+				{Suit: game.Diamond, Rank: "K"}, // player hits to 21
+				{Suit: game.Spade, Rank: "7"},   // dealer hits to 17 and stands
+			},
+			expectState:  game.Finished,
+			expectResult: game.PlayerWin,
+			expectPayout: bet * 2,
+		},
+		{
+			name:         "hit under 21 continue",
+			playerCards:  []game.Card{{Suit: game.Spade, Rank: "7"}, {Suit: game.Heart, Rank: "5"}}, // 12
+			dealerCards:  []game.Card{{Suit: game.Club, Rank: "10"}},                                // 10
+			deckCards:    []game.Card{{Suit: game.Diamond, Rank: "6"}},                              // player 18 (<21)
+			expectState:  game.PlayerTurn,
+			expectResult: game.Pending,
+			expectPayout: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		deck := &mockDeck{cards: tc.deckCards}
+		svc := NewGameService(deck)
+
+		g := game.Game{
+			PlayerHand: game.Hand{Cards: tc.playerCards, Score: game.CalculateScore(tc.playerCards)},
+			DealerHand: game.Hand{Cards: tc.dealerCards, Score: game.CalculateScore(tc.dealerCards)},
+			Bet:        bet,
+			State:      game.PlayerTurn,
+			Result:     game.Pending,
+		}
+
+		if err := svc.Hit(&g); err != nil {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+
+		if g.State != tc.expectState {
+			t.Fatalf("%s: expected state %s, got %s", tc.name, tc.expectState, g.State)
+		}
+		if g.Result != tc.expectResult {
+			t.Fatalf("%s: expected result %s, got %s", tc.name, tc.expectResult, g.Result)
+		}
+		if g.Payout != tc.expectPayout {
+			t.Fatalf("%s: expected payout %d, got %d", tc.name, tc.expectPayout, g.Payout)
+		}
+	}
+}

@@ -29,6 +29,11 @@ func (m mockGameService) Stand(g *game.Game) error {
 	return nil
 }
 
+// 未使用
+func (m mockGameService) Hit(g *game.Game) error {
+	return nil
+}
+
 func TestNewGameHandler_ReturnsGameJSON(t *testing.T) {
 	// 期待する Game オブジェクト
 	expectedBet := 100
