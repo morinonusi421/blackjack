@@ -10,7 +10,7 @@ import ActionButtons from '../components/ActionButtons';
 
 export default function GameClient() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const { game, loading, error, startGame, stand, balance } = useGame(apiUrl);
+  const { game, loading, error, startGame, stand, hit, balance } = useGame(apiUrl);
   const [bet, setBet] = useState(100);
 
   const handleStart = () => {
@@ -48,11 +48,7 @@ export default function GameClient() {
 
       {/* Hit / Stand アクション */}
       {game && game.state === 'PlayerTurn' && (
-        <ActionButtons
-          onHit={() => alert('Hit は未実装です')}
-          onStand={stand}
-          disabled={loading}
-        />
+        <ActionButtons onHit={hit} onStand={stand} disabled={loading} />
       )}
     </section>
   );

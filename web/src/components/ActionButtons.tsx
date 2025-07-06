@@ -34,7 +34,7 @@ export default function ActionButtons({ onStand, onHit, disabled = false }: Acti
           if (!disabled) (e.currentTarget.style.filter = 'brightness(1)');
         }}
       >
-        Hit (未実装)
+        Hit
       </button>
       <button
         onClick={onStand}
