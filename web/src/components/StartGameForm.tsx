@@ -42,14 +42,14 @@ export default function StartGameForm({ bet, onBetChange, loading, onStart, disa
         disabled={loading || disabled}
         style={{
           padding: '8px 20px',
-          backgroundColor: '#0070f3',
+          backgroundColor: loading || disabled ? '#999' : '#0070f3',
           color: '#fff',
           border: 'none',
           borderRadius: '4px',
-          cursor: loading ? 'default' : 'pointer',
+          cursor: loading || disabled ? 'not-allowed' : 'pointer',
           fontWeight: 'bold',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
-          opacity: loading ? 0.6 : 1,
+          opacity: loading || disabled ? 0.6 : 1,
           transition: 'opacity 0.2s',
         }}
       >

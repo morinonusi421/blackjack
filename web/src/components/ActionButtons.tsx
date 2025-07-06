@@ -11,7 +11,7 @@ interface ActionButtonsProps {
 export default function ActionButtons({ onStand, onHit, disabled = false }: ActionButtonsProps) {
   const baseStyle: CSSProperties = {
     padding: '10px 20px',
-    backgroundColor: '#0070f3',
+    backgroundColor: disabled ? '#999' : '#0070f3',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
