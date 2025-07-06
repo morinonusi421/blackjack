@@ -11,8 +11,8 @@ import (
 // StandRequest はスタンド時にクライアントから送られてくる現在のゲーム状態を表します。
 type StandRequest game.Game
 
-// StandHandler は GameService の Stand を呼び出すハンドラを返します。
-func StandHandler(gameSvc services.GameService) http.HandlerFunc {
+// StandHandler は Stander の Stand を呼び出すハンドラを返します。
+func StandHandler(gameSvc services.Stander) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 

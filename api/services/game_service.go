@@ -6,17 +6,32 @@ import (
 	"blackjack/api/game"
 )
 
-// GameService はブラックジャックゲームのユースケースを提供します。
-// 例えばゲーム開始、ヒット、スタンドなど。
-// 現時点ではゲーム開始のみ実装します。
-
-type GameService interface {
+// GameStarter は新規ゲーム開始のみを表す最小インタフェース
+type GameStarter interface {
 	NewGame(bet int) (game.Game, error)
-	// Stand はプレイヤーがスタンドした後のディーラー処理を行い、current を更新して結果を反映します。
-	Stand(g *game.Game) error
-	Hit(g *game.Game) error
-	// Surrender はプレイヤーがサレンダー（降参）した時の処理を行い、掛け金の半分を失います。
-	Surrender(g *game.Game) error
+}
+
+// Hitter はヒット（カードを引く）処理のみを表す最小インタフェース
+type Hitter interface {
+	Hit(*game.Game) error
+}
+
+// Stander はスタンド処理のみを表す最小インタフェース
+type Stander interface {
+	Stand(*game.Game) error
+}
+
+// Surrenderer はサレンダー処理のみを表す最小インタフェース
+type Surrenderer interface {
+	Surrender(*game.Game) error
+}
+
+// GameService はブラックジャックに必要な全ての処理を提供するインターフェース
+type GameService interface {
+	GameStarter
+	Hitter
+	Stander
+	Surrenderer
 }
 
 type gameService struct {

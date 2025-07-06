@@ -11,8 +11,8 @@ import (
 // SurrenderRequest はサレンダー時にクライアントから送られてくる現在のゲーム状態を表します。
 type SurrenderRequest game.Game
 
-// SurrenderHandler は GameService の Surrender を呼び出すハンドラを返します。
-func SurrenderHandler(gameSvc services.GameService) http.HandlerFunc {
+// SurrenderHandler は Surrenderer の Surrender を呼び出すハンドラを返します。
+func SurrenderHandler(gameSvc services.Surrenderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 

@@ -14,8 +14,8 @@ type NewGameRequest struct {
 	Bet int `json:"bet"`
 }
 
-// NewGameHandler は GameService を用いて新規ゲームを開始するハンドラを生成します。
-func NewGameHandler(gameSvc services.GameService) http.HandlerFunc {
+// NewGameHandler は GameStarter を用いて新規ゲームを開始するハンドラを生成します。
+func NewGameHandler(gameSvc services.GameStarter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 

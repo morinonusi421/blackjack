@@ -13,23 +13,11 @@ import (
 // mockHitService は Hit の挙動をテストするためのモックサービスです。
 type mockHitService struct{}
 
-func (m mockHitService) NewGame(bet int) (game.Game, error) { // 未使用
-	return game.Game{}, nil
-}
-
-func (m mockHitService) Stand(g *game.Game) error { // 未使用
-	return nil
-}
-
 func (m mockHitService) Hit(g *game.Game) error {
 	// テスト用に単純にプレイヤーバーストさせる
 	g.State = game.Finished
 	g.Result = game.DealerWin
 	g.Payout = 0
-	return nil
-}
-
-func (m mockHitService) Surrender(g *game.Game) error { // 未使用
 	return nil
 }
 

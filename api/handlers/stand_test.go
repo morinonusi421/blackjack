@@ -12,23 +12,11 @@ import (
 
 type mockStandService struct{}
 
-func (m mockStandService) NewGame(bet int) (game.Game, error) { // 未使用
-	return game.Game{}, nil
-}
-
 func (m mockStandService) Stand(g *game.Game) error {
 	// ダミーで引き分けを返す
 	g.State = game.Finished
 	g.Result = game.Push
 	g.Payout = g.Bet
-	return nil
-}
-
-func (m mockStandService) Hit(g *game.Game) error { // 未使用
-	return nil
-}
-
-func (m mockStandService) Surrender(g *game.Game) error { // 未使用
 	return nil
 }
 

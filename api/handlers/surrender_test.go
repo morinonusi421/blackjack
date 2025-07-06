@@ -12,18 +12,6 @@ import (
 
 type mockSurrenderService struct{}
 
-func (m mockSurrenderService) NewGame(bet int) (game.Game, error) { // 未使用
-	return game.Game{}, nil
-}
-
-func (m mockSurrenderService) Stand(g *game.Game) error { // 未使用
-	return nil
-}
-
-func (m mockSurrenderService) Hit(g *game.Game) error { // 未使用
-	return nil
-}
-
 func (m mockSurrenderService) Surrender(g *game.Game) error {
 	// ダミーでサレンダー結果を返す
 	g.State = game.Finished

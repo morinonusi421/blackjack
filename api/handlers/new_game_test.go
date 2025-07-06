@@ -24,20 +24,6 @@ func (m mockGameService) NewGame(bet int) (game.Game, error) {
 	return m.retGame, m.retErr
 }
 
-// ダミー実装: テスト対象外
-func (m mockGameService) Stand(g *game.Game) error {
-	return nil
-}
-
-// 未使用
-func (m mockGameService) Hit(g *game.Game) error {
-	return nil
-}
-
-func (m mockGameService) Surrender(g *game.Game) error { // 未使用
-	return nil
-}
-
 func TestNewGameHandler_ReturnsGameJSON(t *testing.T) {
 	// 期待する Game オブジェクト
 	expectedBet := 100

@@ -11,8 +11,8 @@ import (
 // HitRequest はヒット時にクライアントから送られてくる現在のゲーム状態を表します。
 type HitRequest game.Game
 
-// HitHandler は GameService の Hit を呼び出すハンドラを返します。
-func HitHandler(gameSvc services.GameService) http.HandlerFunc {
+// HitHandler は Hitter の Hit を呼び出すハンドラを返します。
+func HitHandler(gameSvc services.Hitter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
