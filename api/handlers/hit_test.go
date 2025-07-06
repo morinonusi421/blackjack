@@ -29,6 +29,10 @@ func (m mockHitService) Hit(g *game.Game) error {
 	return nil
 }
 
+func (m mockHitService) Surrender(g *game.Game) error { // 未使用
+	return nil
+}
+
 func TestHitHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 	bet := 100
 

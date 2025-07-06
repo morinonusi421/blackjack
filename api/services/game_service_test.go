@@ -234,3 +234,45 @@ func TestGameService_Hit(t *testing.T) {
 		}
 	}
 }
+
+func TestGameService_Surrender(t *testing.T) {
+	bet := 100
+
+	deck := &mockDeck{cards: []game.Card{}}
+	svc := NewGameService(deck)
+
+	g := game.Game{
+		PlayerHand: game.Hand{
+			Cards: []game.Card{
+				{Suit: game.Spade, Rank: "10"},
+				{Suit: game.Heart, Rank: "6"},
+			},
+			Score: 16,
+		},
+		DealerHand: game.Hand{
+			Cards: []game.Card{{Suit: game.Club, Rank: "9"}},
+			Score: 9,
+		},
+		Bet:    bet,
+		State:  game.PlayerTurn,
+		Result: game.Pending,
+	}
+
+	err := svc.Surrender(&g)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if g.State != game.Finished {
+		t.Fatalf("expected state %s, got %s", game.Finished, g.State)
+	}
+	if g.Result != game.Surrender {
+		t.Fatalf("expected result %s, got %s", game.Surrender, g.Result)
+	}
+	if g.Payout != bet/2 {
+		t.Fatalf("expected payout %d, got %d", bet/2, g.Payout)
+	}
+	if g.ResultMessage != "Player surrendered." {
+		t.Fatalf("expected result message 'Player surrendered.', got '%s'", g.ResultMessage)
+	}
+}

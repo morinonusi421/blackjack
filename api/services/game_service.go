@@ -15,6 +15,8 @@ type GameService interface {
 	// Stand はプレイヤーがスタンドした後のディーラー処理を行い、current を更新して結果を反映します。
 	Stand(g *game.Game) error
 	Hit(g *game.Game) error
+	// Surrender はプレイヤーがサレンダー（降参）した時の処理を行い、掛け金の半分を失います。
+	Surrender(g *game.Game) error
 }
 
 type gameService struct {
@@ -174,5 +176,38 @@ func (s *gameService) Hit(g *game.Game) error {
 	}
 
 	// それ以外（21 未満）の場合は引き続きプレイヤーターン
+	return nil
+}
+
+// Surrender はプレイヤーがサレンダー（降参）を選択した時の処理を行います。
+// 掛け金の半分を失い、ゲームを終了します。
+// プレイヤーは最初の2枚のカードを受け取った後にのみサレンダーできます。
+func (s *gameService) Surrender(g *game.Game) error {
+	// 引数チェック
+	if g == nil {
+		return errors.New("game must not be nil")
+	}
+
+	// ゲーム状態がプレイヤーターンであることを確認
+	if g.State != game.PlayerTurn {
+		return errors.New("invalid state: game is not in player turn")
+	}
+
+	// 既に結果が確定していないか確認
+	if g.Result != game.Pending {
+		return errors.New("invalid state: game already finished")
+	}
+
+	// プレイヤーが最初の2枚のカードしか持っていないことを確認
+	if len(g.PlayerHand.Cards) != 2 {
+		return errors.New("invalid state: surrender is only allowed with initial 2 cards")
+	}
+
+	// サレンダー処理
+	g.State = game.Finished
+	g.Result = game.Surrender
+	g.ResultMessage = "Player surrendered."
+	g.Payout = g.Bet / 2 // 掛け金の半分を返却
+
 	return nil
 }

@@ -28,6 +28,10 @@ func (m mockStandService) Hit(g *game.Game) error { // 未使用
 	return nil
 }
 
+func (m mockStandService) Surrender(g *game.Game) error { // 未使用
+	return nil
+}
+
 func TestStandHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 	bet := 100
 

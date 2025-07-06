@@ -43,6 +43,7 @@ const (
 	PlayerWin Result = "PlayerWin"
 	DealerWin Result = "DealerWin"
 	Push      Result = "Push"
+	Surrender Result = "Surrender"
 )
 
 // Game はゲーム全体の状態を保持します。
