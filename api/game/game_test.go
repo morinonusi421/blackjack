@@ -30,6 +30,11 @@ func TestCalculateScore(t *testing.T) {
 			cards:    []Card{{Suit: Club, Rank: "A"}, {Suit: Heart, Rank: "9"}, {Suit: Spade, Rank: "3"}},
 			expected: 13,
 		},
+		{
+			name:     "bust",
+			cards:    []Card{{Suit: Spade, Rank: "K"}, {Suit: Heart, Rank: "Q"}, {Suit: Diamond, Rank: "2"}},
+			expected: 0, // 10+10+2=22でバースト
+		},
 	}
 
 	for _, tc := range tests {

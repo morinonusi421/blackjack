@@ -108,14 +108,15 @@ func (s *gameService) Stand(g *game.Game) error {
 		return errors.New("invalid state: game is not in player turn")
 	}
 
-	// ディーラーは17以上になるまでヒット
-	for g.DealerHand.Score < 17 {
+	// ディーラーは17以上またはバースト（score==0）で止まる
+	for g.DealerHand.Score < 17 && g.DealerHand.Score != 0 {
 		card := s.deck.Deal()
 		g.DealerHand.Cards = append(g.DealerHand.Cards, card)
 		g.DealerHand.Score = game.CalculateScore(g.DealerHand.Cards)
 	}
 
 	dealerScore := g.DealerHand.Score
+	playerScore := g.PlayerHand.Score
 
 	// 結果判定
 	var (
@@ -124,10 +125,12 @@ func (s *gameService) Stand(g *game.Game) error {
 		msg    string
 	)
 
-	playerScore := g.PlayerHand.Score
-
 	switch {
-	case dealerScore > 21:
+	case playerScore == 0:
+		result = game.DealerWin
+		payout = 0
+		msg = "Player busts! Dealer wins."
+	case dealerScore == 0:
 		result = game.PlayerWin
 		payout = g.Bet * 2
 		msg = "Dealer busts! Player wins."
@@ -139,9 +142,9 @@ func (s *gameService) Stand(g *game.Game) error {
 		result = game.DealerWin
 		payout = 0
 		msg = "Dealer wins."
-	default: // 引き分け
+	default:
 		result = game.Push
-		payout = g.Bet // 掛け金を返却
+		payout = g.Bet
 		msg = "Push. Bet returned."
 	}
 
@@ -177,7 +180,7 @@ func (s *gameService) Hit(g *game.Game) error {
 	playerScore := g.PlayerHand.Score
 
 	// バーストチェック
-	if playerScore > 21 {
+	if playerScore == 0 {
 		g.State = game.Finished
 		g.Result = game.DealerWin
 		g.ResultMessage = "Player busts! Dealer wins."

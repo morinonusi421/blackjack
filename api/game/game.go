@@ -74,27 +74,57 @@ var rankScoreMap = map[Rank]int{
 }
 
 // ランクからデフォルトスコアへの変換を行うヘルパー関数。
-func rankToScore(rank Rank) int {
-	return rankScoreMap[rank]
+func RankToScore(rank Rank) int {
+	switch rank {
+	case "A":
+		return 1 // エースは1として扱う（戦略計算・内部統一）
+	case "K", "Q", "J":
+		return 10
+	case "10":
+		return 10
+	case "9":
+		return 9
+	case "8":
+		return 8
+	case "7":
+		return 7
+	case "6":
+		return 6
+	case "5":
+		return 5
+	case "4":
+		return 4
+	case "3":
+		return 3
+	case "2":
+		return 2
+	default:
+		return 0
+	}
 }
 
 // CalculateScore は手札のスコアを計算して返します。
 // J, Q, K は 10、A は 1 もしくは 11 として扱います。
 func CalculateScore(cards []Card) int {
 	score := 0
-	aceCount := 0
+	hasAce := false
 
 	for _, c := range cards {
-		score += rankToScore(c.Rank)
+		s := RankToScore(c.Rank)
+		score += s
 		if c.Rank == "A" {
-			aceCount++
+			hasAce = true
 		}
 	}
 
-	// A の調整: 合計が 21 を超える場合は 1 として数えるように減算する
-	for score > 21 && aceCount > 0 {
-		score -= 10 // 11 -> 1 にするため 10 引く
-		aceCount--
+	// 21以上でバースト
+	if score > 21 {
+		return 0
+	}
+
+	// エースを持っていて、合計+10が21以下なら+10する
+	if hasAce && score+10 <= 21 {
+		score += 10
 	}
 
 	return score
