@@ -44,7 +44,7 @@ func TestGameService_NewGame_ValidBet(t *testing.T) {
 			},
 			expectState:  game.Finished,
 			expectResult: game.PlayerWin,
-			expectPayout: bet * 3 / 2,
+			expectPayout: 250,
 		},
 		{
 			name: "non-blackjack",

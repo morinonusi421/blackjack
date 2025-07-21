@@ -77,7 +77,7 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 		g.State = game.Finished
 		g.Result = game.PlayerWin
 		g.ResultMessage = "Blackjack! Player wins."
-		g.Payout = bet * 3 / 2 // 1.5 倍
+		g.Payout = bet * 5 / 2 // 2.5 倍
 	}
 
 	return g, nil
