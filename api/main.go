@@ -43,6 +43,7 @@ func main() {
 
 	// 依存性の生成
 	gameService := services.NewGameService(&game.RandomDeck{})
+	strategyService := services.NewStrategyService()
 
 	// ゲームエンドポイント
 	router.HandleFunc("/api/game/new", handlers.NewGameHandler(gameService)).Methods("POST")
@@ -58,6 +59,9 @@ func main() {
 
 	// ヘルスチェックエンドポイント
 	router.HandleFunc("/api/health", handlers.HealthHandler).Methods("GET")
+
+	// 戦略アドバイスエンドポイント
+	router.HandleFunc("/api/strategy/advise", handlers.StrategyHandler(strategyService)).Methods("POST")
 
 	// ミドルウェアを適用したハンドラ
 	handlerWithCors := corsMiddleware(router)
