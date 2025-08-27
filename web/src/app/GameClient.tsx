@@ -7,10 +7,11 @@ import ErrorMessage from '../components/ErrorMessage';
 import StartGameForm from '../components/StartGameForm';
 import Balance from '../components/Balance';
 import ActionButtons from '../components/ActionButtons';
+import StrategyAdvice from '../components/StrategyAdvice';
 
 export default function GameClient() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const { game, loading, error, startGame, stand, hit, surrender, balance } = useGame(apiUrl);
+  const { game, loading, error, startGame, stand, hit, surrender, balance, advice, getAdvice } = useGame(apiUrl);
   const [bet, setBet] = useState(100);
 
   const handleStart = () => {
@@ -49,6 +50,11 @@ export default function GameClient() {
       {/* ゲーム状況表示 */}
       <GameInfo game={game} />
 
+      {/* 戦略の期待払い戻し表示 */}
+      {game && game.state === 'PlayerTurn' && advice && (
+        <StrategyAdvice advice={advice} canSurrender={canSurrender} bet={game.bet} />
+      )}
+
       {/* Hit / Stand / Surrender アクション */}
       {game && game.state === 'PlayerTurn' && (
         <ActionButtons 
@@ -57,6 +63,7 @@ export default function GameClient() {
           onSurrender={surrender} 
           canSurrender={canSurrender}
           disabled={loading} 
+          onShowAdvice={getAdvice}
         />
       )}
     </section>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Game } from '../types/game';
+import type { Game, StrategyAdvice } from '../types/game';
 
 /**
  * ブラックジャックの新規ゲーム開始を扱うカスタムフック。
@@ -13,6 +13,7 @@ export default function useGame(apiUrl?: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [balance, setBalance] = useState(10000);
+  const [advice, setAdvice] = useState<StrategyAdvice | null>(null);
 
   /**
    * ゲーム状態を取得して state / balance / error / loading を一括で更新する共通関数
@@ -41,6 +42,8 @@ export default function useGame(apiUrl?: string | null) {
         if (!res.ok) throw new Error('APIからの応答がありませんでした');
         const result: Game = await res.json();
         setGame(result);
+        // アクションを実際に行ったので、過去のアドバイスはクリア
+        setAdvice(null);
 
         // `betAmount` が指定されている場合は掛け金を差し引いた上で払い戻しを加算、それ以外は払い戻しのみ加算
         setBalance((prev) =>
@@ -127,6 +130,41 @@ export default function useGame(apiUrl?: string | null) {
     await fetchAndUpdateGame('/api/game/surrender', game);
   }, [game, fetchAndUpdateGame]);
 
+  /**
+   * 現在のゲーム状態に対する戦略アドバイス（期待払い戻し）を取得
+   */
+  const getAdvice = useCallback(async () => {
+    if (!apiUrl) {
+      setError('APIのURLが設定されていません。');
+      return;
+    }
+    if (!game) {
+      setError('ゲームが開始されていません。');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${apiUrl}/api/strategy/advise`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(game),
+      });
+      if (!res.ok) throw new Error('APIからの応答がありませんでした');
+      const data: StrategyAdvice = await res.json();
+      setAdvice(data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('不明なエラーが発生しました');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [apiUrl, game]);
+
   return {
     game,
     loading,
@@ -136,5 +174,7 @@ export default function useGame(apiUrl?: string | null) {
     hit,
     surrender,
     balance,
+    advice,
+    getAdvice,
   } as const;
 } 

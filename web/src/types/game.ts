@@ -20,3 +20,9 @@ export interface Game {
   bet: number;
   payout: number;
 } 
+
+export interface StrategyAdvice {
+  hit_payout: number;
+  stand_payout: number;
+  surrender_payout: number;
+}

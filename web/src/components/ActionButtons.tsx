@@ -8,9 +8,10 @@ interface ActionButtonsProps {
   onSurrender: () => void;
   canSurrender: boolean;
   disabled?: boolean;
+  onShowAdvice?: () => void;
 }
 
-export default function ActionButtons({ onStand, onHit, onSurrender, canSurrender, disabled = false }: ActionButtonsProps) {
+export default function ActionButtons({ onStand, onHit, onSurrender, canSurrender, disabled = false, onShowAdvice }: ActionButtonsProps) {
   // サレンダーは初回アクションでのみ可能
   const surrenderDisabled = disabled || !canSurrender;
 
@@ -35,6 +36,19 @@ export default function ActionButtons({ onStand, onHit, onSurrender, canSurrende
 
   return (
     <div style={{ display: 'flex', gap: '12px' }}>
+      <button
+        onClick={onShowAdvice}
+        disabled={disabled}
+        style={baseStyle}
+        onMouseOver={(e) => {
+          if (!disabled) (e.currentTarget.style.filter = 'brightness(1.1)');
+        }}
+        onMouseOut={(e) => {
+          if (!disabled) (e.currentTarget.style.filter = 'brightness(1)');
+        }}
+      >
+        答えを見る
+      </button>
       <button
         onClick={onHit}
         disabled={disabled}
