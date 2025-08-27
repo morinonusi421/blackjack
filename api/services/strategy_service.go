@@ -1,8 +1,6 @@
 package services
 
 import (
-	"errors"
-
 	"blackjack/api/game"
 	"blackjack/api/strategy"
 )
@@ -24,12 +22,9 @@ func NewStrategyService() StrategyAdvisor {
 
 // Advise は game.Game から strategy.StrategyState に変換し、期待払い戻しを計算して返します。
 func (s *strategyService) Advise(g game.Game) (strategy.StrategyExpectedPayouts, error) {
-	// 前提: ディーラーのアップカードが1枚以上存在すること
-	if len(g.DealerHand.Cards) < 1 {
-		return strategy.StrategyExpectedPayouts{}, errors.New("invalid state: dealer must have at least 1 card")
-	}
-	if len(g.PlayerHand.Cards) < 2 {
-		return strategy.StrategyExpectedPayouts{}, errors.New("invalid state: player must have at least 2 cards")
+	// 基本整合性
+	if err := (&g).ValidateCore(); err != nil {
+		return strategy.StrategyExpectedPayouts{}, err
 	}
 
 	// プレイヤー手札

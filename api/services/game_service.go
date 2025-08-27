@@ -87,25 +87,19 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 // 最終結果を判定して Game を返します。
 // g.State が PlayerTurn でない場合はエラーを返します。
 func (s *gameService) Stand(g *game.Game) error {
-	// 引数チェック
-	if g == nil {
-		return errors.New("game must not be nil")
+	// 基本整合性
+	if err := g.ValidateCore(); err != nil {
+		return err
 	}
-
-	// プレイヤーは 2 枚、ディーラーは 1 枚以上の手札が必要
-	if len(g.PlayerHand.Cards) < 2 {
-		return errors.New("invalid state: player must have at least 2 cards")
+	// アクション固有の前提
+	if g.State != game.PlayerTurn {
+		return errors.New("invalid state: game is not in player turn")
 	}
-	if len(g.DealerHand.Cards) != 1 {
-		return errors.New("invalid state: dealer must have exactly 1 card")
-	}
-
-	// ゲーム結果がまだ確定していないことを確認
 	if g.Result != game.Pending {
 		return errors.New("invalid state: game already finished")
 	}
-	if g.State != game.PlayerTurn {
-		return errors.New("invalid state: game is not in player turn")
+	if len(g.DealerHand.Cards) != 1 {
+		return errors.New("invalid state: dealer must have exactly 1 card")
 	}
 
 	// ディーラーは17以上またはバースト（score==0）で止まる
@@ -157,17 +151,14 @@ func (s *gameService) Stand(g *game.Game) error {
 }
 
 func (s *gameService) Hit(g *game.Game) error {
-	// 引数チェック
-	if g == nil {
-		return errors.New("game must not be nil")
+	// 基本整合性
+	if err := g.ValidateCore(); err != nil {
+		return err
 	}
-
-	// ゲーム状態がプレイヤーターンであることを確認
+	// アクション固有の前提
 	if g.State != game.PlayerTurn {
 		return errors.New("invalid state: game is not in player turn")
 	}
-
-	// 既に結果が確定していないか確認
 	if g.Result != game.Pending {
 		return errors.New("invalid state: game already finished")
 	}
@@ -201,22 +192,17 @@ func (s *gameService) Hit(g *game.Game) error {
 // 掛け金の半分を失い、ゲームを終了します。
 // プレイヤーは最初の2枚のカードを受け取った後にのみサレンダーできます。
 func (s *gameService) Surrender(g *game.Game) error {
-	// 引数チェック
-	if g == nil {
-		return errors.New("game must not be nil")
+	// 基本整合性
+	if err := g.ValidateCore(); err != nil {
+		return err
 	}
-
-	// ゲーム状態がプレイヤーターンであることを確認
+	// アクション固有の前提
 	if g.State != game.PlayerTurn {
 		return errors.New("invalid state: game is not in player turn")
 	}
-
-	// 既に結果が確定していないか確認
 	if g.Result != game.Pending {
 		return errors.New("invalid state: game already finished")
 	}
-
-	// プレイヤーが最初の2枚のカードしか持っていないことを確認
 	if len(g.PlayerHand.Cards) != 2 {
 		return errors.New("invalid state: surrender is only allowed with initial 2 cards")
 	}

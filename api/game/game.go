@@ -1,5 +1,7 @@
 package game
 
+import "errors"
+
 type Suit string
 
 const (
@@ -55,6 +57,32 @@ type Game struct {
 	ResultMessage string    `json:"result_message"`
 	Bet           int       `json:"bet"`    // 掛け金
 	Payout        int       `json:"payout"` // 払戻金（勝利額／Push はベット返却）
+}
+
+// ValidateCore はゲーム状態の基本整合性を検証する
+// - 手札の枚数（プレイヤー>=2, ディーラー>=1）
+// - State/Result の矛盾がない（PlayerTurn↔Pending, Finished↔非Pending）
+// - Bet と Payout の簡易整合性
+func (g *Game) ValidateCore() error {
+	if len(g.PlayerHand.Cards) < 2 {
+		return errors.New("invalid state: player must have at least 2 cards")
+	}
+	if len(g.DealerHand.Cards) < 1 {
+		return errors.New("invalid state: dealer must have at least 1 card")
+	}
+	if g.State == PlayerTurn && g.Result != Pending {
+		return errors.New("invalid state: player turn but result is not pending")
+	}
+	if g.State == Finished && g.Result == Pending {
+		return errors.New("invalid state: finished but result is pending")
+	}
+	if g.Bet <= 0 {
+		return errors.New("invalid state: bet must be positive")
+	}
+	if g.Payout < 0 {
+		return errors.New("invalid state: payout must be non-negative")
+	}
+	return nil
 }
 
 var rankScoreMap = map[Rank]int{
