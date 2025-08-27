@@ -123,23 +123,23 @@ func (s *gameService) Stand(g *game.Game) error {
 	case playerScore == 0:
 		result = game.DealerWin
 		payout = 0
-		msg = "Player busts! Dealer wins."
+		msg = "プレイヤーがバースト！ディラーの勝ちですå"
 	case dealerScore == 0:
 		result = game.PlayerWin
 		payout = g.Bet * 2
-		msg = "Dealer busts! Player wins."
+		msg = "ディラーがバースト! プレイヤーの勝ちです"
 	case dealerScore < playerScore:
 		result = game.PlayerWin
 		payout = g.Bet * 2
-		msg = "Player wins."
+		msg = "プレイヤーの勝ちです"
 	case dealerScore > playerScore:
 		result = game.DealerWin
 		payout = 0
-		msg = "Dealer wins."
+		msg = "ディラーの勝ちです"
 	default:
 		result = game.Push
 		payout = g.Bet
-		msg = "Push. Bet returned."
+		msg = "引き分けです"
 	}
 
 	g.State = game.Finished

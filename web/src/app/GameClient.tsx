@@ -19,9 +19,10 @@ export default function GameClient() {
   };
 
   // サレンダーは最初の2枚のカードを受け取った後にのみ可能
-  const canSurrender = game?.player_hand.cards.length === 2;
+  const canSurrender = !!(game && game.player_hand.cards.length === 2);
 
   const gameInProgress = game?.state === 'PlayerTurn';
+  const controlsDisabled = !gameInProgress || loading;
 
   return (
     <section
@@ -47,25 +48,62 @@ export default function GameClient() {
       {/* エラーメッセージ */}
       <ErrorMessage message={error ?? ''} />
 
-      {/* ゲーム状況表示 */}
-      <GameInfo game={game} />
+      {/* Hit / Stand / Surrender アクション（常時表示・未開始時は非活性） */}
+      <ActionButtons 
+        onHit={hit} 
+        onStand={stand} 
+        onSurrender={surrender} 
+        canSurrender={canSurrender}
+        disabled={controlsDisabled} 
+        onShowAdvice={getAdvice}
+      />
 
-      {/* 戦略の期待払い戻し表示 */}
-      {game && game.state === 'PlayerTurn' && advice && (
-        <StrategyAdvice advice={advice} canSurrender={canSurrender} bet={game.bet} />
-      )}
+      {/* 二列レイアウト: 左=ゲーム状況, 右=助言（固定幅プレースホルダを常設） */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '20px',
+          alignItems: 'flex-start',
+          width: '100%',
+          justifyContent: 'center',
+        }}
+      >
+        {/* 左カラム: ゲーム状況（幅を固定し位置がずれないようにする） */}
+        <div style={{ width: '480px', maxWidth: '100%' }}>
+          <GameInfo game={game} />
+        </div>
 
-      {/* Hit / Stand / Surrender アクション */}
-      {game && game.state === 'PlayerTurn' && (
-        <ActionButtons 
-          onHit={hit} 
-          onStand={stand} 
-          onSurrender={surrender} 
-          canSurrender={canSurrender}
-          disabled={loading} 
-          onShowAdvice={getAdvice}
-        />
-      )}
+        {/* 右カラム: 助言パネル（固定幅枠を常に表示） */}
+        <div
+          style={{
+            width: '360px',
+            maxWidth: '100%',
+          }}
+        >
+          {game && game.state === 'PlayerTurn' && advice ? (
+            <StrategyAdvice advice={advice} canSurrender={canSurrender} bet={game.bet} />
+          ) : (
+            <section
+              aria-label="strategy-advice"
+              style={{
+                width: '100%',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '16px',
+                background: '#fafafa',
+                color: '#6b7280',
+                minHeight: '120px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+              }}
+            >
+              答えを見る を押すと、ここに期待払い戻しが表示されます。
+            </section>
+          )}
+        </div>
+      </div>
     </section>
   );
 } 
