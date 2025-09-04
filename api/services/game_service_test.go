@@ -272,7 +272,7 @@ func TestGameService_Surrender(t *testing.T) {
 	if g.Payout != bet/2 {
 		t.Fatalf("expected payout %d, got %d", bet/2, g.Payout)
 	}
-	if g.ResultMessage != "Player surrendered." {
-		t.Fatalf("expected result message 'Player surrendered.', got '%s'", g.ResultMessage)
+	if g.ResultMessage != game.MessagePlayerSurrendered {
+		t.Fatalf("expected result message '%s', got '%s'", game.MessagePlayerSurrendered, g.ResultMessage)
 	}
 }

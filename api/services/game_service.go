@@ -76,7 +76,7 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 	if playerScore == 21 {
 		g.State = game.Finished
 		g.Result = game.PlayerWin
-		g.ResultMessage = "Blackjack! Player wins."
+		g.ResultMessage = game.MessageBlackjackPlayerWin
 		g.Payout = bet * 5 / 2 // 2.5 倍
 	}
 
@@ -123,23 +123,23 @@ func (s *gameService) Stand(g *game.Game) error {
 	case playerScore == 0:
 		result = game.DealerWin
 		payout = 0
-		msg = "プレイヤーがバースト！ディラーの勝ちですå"
+		msg = game.MessagePlayerBustDealerWin
 	case dealerScore == 0:
 		result = game.PlayerWin
 		payout = g.Bet * 2
-		msg = "ディラーがバースト! プレイヤーの勝ちです"
+		msg = game.MessageDealerBustPlayerWin
 	case dealerScore < playerScore:
 		result = game.PlayerWin
 		payout = g.Bet * 2
-		msg = "プレイヤーの勝ちです"
+		msg = game.MessagePlayerWin
 	case dealerScore > playerScore:
 		result = game.DealerWin
 		payout = 0
-		msg = "ディラーの勝ちです"
+		msg = game.MessageDealerWin
 	default:
 		result = game.Push
 		payout = g.Bet
-		msg = "引き分けです"
+		msg = game.MessagePush
 	}
 
 	g.State = game.Finished
@@ -174,7 +174,7 @@ func (s *gameService) Hit(g *game.Game) error {
 	if playerScore == 0 {
 		g.State = game.Finished
 		g.Result = game.DealerWin
-		g.ResultMessage = "Player busts! Dealer wins."
+		g.ResultMessage = game.MessagePlayerBustDealerWin
 		g.Payout = 0
 		return nil
 	}
@@ -210,7 +210,7 @@ func (s *gameService) Surrender(g *game.Game) error {
 	// サレンダー処理
 	g.State = game.Finished
 	g.Result = game.Surrender
-	g.ResultMessage = "Player surrendered."
+	g.ResultMessage = game.MessagePlayerSurrendered
 	g.Payout = g.Bet / 2 // 掛け金の半分を返却
 
 	return nil

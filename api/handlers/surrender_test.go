@@ -16,7 +16,7 @@ func (m mockSurrenderService) Surrender(g *game.Game) error {
 	// ダミーでサレンダー結果を返す
 	g.State = game.Finished
 	g.Result = game.Surrender
-	g.ResultMessage = "Player surrendered."
+	g.ResultMessage = game.MessagePlayerSurrendered
 	g.Payout = g.Bet / 2
 	return nil
 }
@@ -68,7 +68,7 @@ func TestSurrenderHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 		t.Fatalf("expected payout %d, got %d", bet/2, resp.Payout)
 	}
 
-	if resp.ResultMessage != "Player surrendered." {
-		t.Fatalf("expected result message 'Player surrendered.', got '%s'", resp.ResultMessage)
+	if resp.ResultMessage != game.MessagePlayerSurrendered {
+		t.Fatalf("expected result message '%s', got '%s'", game.MessagePlayerSurrendered, resp.ResultMessage)
 	}
 }
