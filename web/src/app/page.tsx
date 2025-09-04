@@ -38,12 +38,19 @@ export default function Home() {
         <p>
           ブラックジャックは、短いラウンドで運と判断を楽しむカードゲームです。目的は自分の手札合計を21に近づけ、ディーラーより高くすることです。
         </p>
+
         <ol style={{ paddingLeft: '1.2em', listStyleType: 'decimal' }}>
           <li style={{ margin: '6px 0' }}>配札: プレイヤーは2枚、ディーラーは1枚の公開カードを受け取ります。</li>
           <li style={{ margin: '6px 0' }}>プレイヤーの手番: 21を超えないように、ギリギリまでカードを引いていきます。21を超えるとその時点で敗北。</li>
           <li style={{ margin: '6px 0' }}>ディーラーの手番: 合計が17以上になるまで自動でカードを引き、プレイヤーと勝負をします。</li>
           <li style={{ margin: '6px 0' }}>勝敗判定: バーストしていなければ、21により近い方が勝ち。同じなら引き分け。</li>
         </ol>
+        <p>
+          補足：J、Q、Kは10として数え、11,12,13とは数えません。
+        </p>
+        <p>
+          補足：Aは1または11として、自分にとって都合の良いほうで数えます。
+        </p>
         <hr style={{ margin: '20px 0', border: 0, borderTop: '2px solid #cbd5e1' }} />
 
         <h3 style={{ fontSize: '18px', margin: '16px 0 8px' }}>プレイヤーの手番で行えるアクション</h3>
