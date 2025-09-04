@@ -59,27 +59,14 @@ export default function GameClient() {
       />
 
       {/* 二列レイアウト: 左=ゲーム状況, 右=助言（固定幅プレースホルダを常設） */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '20px',
-          alignItems: 'flex-start',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        {/* 左カラム: ゲーム状況（幅を固定し位置がずれないようにする） */}
-        <div style={{ width: '480px', maxWidth: '100%' }}>
+      <div className="gc-two-col">
+        {/* 左カラム: ゲーム状況 */}
+        <div className="gc-left">
           <GameInfo game={game} />
         </div>
 
-        {/* 右カラム: 助言パネル（固定幅枠を常に表示） */}
-        <div
-          style={{
-            width: '360px',
-            maxWidth: '100%',
-          }}
-        >
+        {/* 右カラム: 助言パネル */}
+        <div className="gc-right">
           {game && game.state === 'PlayerTurn' && advice ? (
             <StrategyAdvice advice={advice} canSurrender={canSurrender} bet={game.bet} />
           ) : (

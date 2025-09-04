@@ -11,10 +11,8 @@ interface StartGameFormProps {
 export default function StartGameForm({ bet, onBetChange, loading, onStart, disabled = false }: StartGameFormProps) {
   return (
     <div
+      className="start-form"
       style={{
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'center',
         border: '1px solid #ccc',
         borderRadius: '8px',
         padding: '12px 16px',

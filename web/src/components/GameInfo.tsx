@@ -59,9 +59,8 @@ export default function GameInfo({ game }: GameInfoProps) {
             key={`${c.suit}-${c.rank}-${idx}`}
             src={getCardImagePath(c)}
             alt={`${c.suit} ${c.rank}`}
+            className="card-img"
             style={{
-              width: '72px',
-              height: 'auto',
               borderRadius: '6px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
               background: '#fff',

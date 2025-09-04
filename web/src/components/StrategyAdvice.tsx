@@ -22,11 +22,11 @@ export default function StrategyAdvice({ advice, canSurrender, bet }: StrategyAd
       aria-label="strategy-advice"
       style={{
         width: '100%',
-        maxWidth: '480px',
         border: '1px solid #ccc',
         borderRadius: '8px',
         padding: '16px',
         background: '#fafafa',
+        minHeight: '120px',
       }}
     >
       <h3 style={{ marginTop: 0, marginBottom: '8px' }}>期待払い戻し（ベット{bet}）</h3>

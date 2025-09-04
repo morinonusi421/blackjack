@@ -24,7 +24,7 @@ export default function ActionButtons({ onStand, onHit, onSurrender, canSurrende
   // SurrenderButton にスタイル委譲のため個別スタイルは不要
 
   return (
-    <div style={{ display: 'flex', gap: '12px' }}>
+    <div className="action-buttons">
       <ShowAdviceButton onClick={onShowAdvice} disabled={disabled} />
       <HitButton onClick={onHit} disabled={disabled} />
       <StandButton onClick={onStand} disabled={disabled} />
