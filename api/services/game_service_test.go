@@ -17,6 +17,17 @@ func (m *mockDeck) Deal() game.Card {
 	return c
 }
 
+// MockDeck is an improved mock deck for more complex testing scenarios
+type MockDeck struct {
+	nextCard game.Card
+	calls    int
+}
+
+func (m *MockDeck) Deal() game.Card {
+	m.calls++
+	return m.nextCard
+}
+
 func TestGameService_NewGame_InvalidBet(t *testing.T) {
 	svc := NewGameService(&mockDeck{})
 	_, err := svc.NewGame(0)
@@ -147,7 +158,8 @@ func TestGameService_Stand(t *testing.T) {
 			Result:     game.Pending,
 		}
 
-		if err := svc.Stand(&g); err != nil {
+		config := &game.GameConfig{DealerStandThreshold: 17}
+		if err := svc.Stand(&g, config); err != nil {
 			t.Fatalf("%s: unexpected error: %v", tc.name, err)
 		}
 
@@ -219,7 +231,8 @@ func TestGameService_Hit(t *testing.T) {
 			Result:     game.Pending,
 		}
 
-		if err := svc.Hit(&g); err != nil {
+		config := &game.GameConfig{DealerStandThreshold: 17}
+		if err := svc.Hit(&g, config); err != nil {
 			t.Fatalf("%s: unexpected error: %v", tc.name, err)
 		}
 
@@ -258,7 +271,8 @@ func TestGameService_Surrender(t *testing.T) {
 		Result: game.Pending,
 	}
 
-	err := svc.Surrender(&g)
+	config := &game.GameConfig{DealerStandThreshold: 17}
+	err := svc.Surrender(&g, config)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

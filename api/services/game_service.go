@@ -13,17 +13,17 @@ type GameStarter interface {
 
 // Hitter はヒット（カードを引く）処理のみを表す最小インタフェース
 type Hitter interface {
-	Hit(*game.Game) error
+	Hit(*game.Game, *game.GameConfig) error
 }
 
 // Stander はスタンド処理のみを表す最小インタフェース
 type Stander interface {
-	Stand(*game.Game) error
+	Stand(*game.Game, *game.GameConfig) error
 }
 
 // Surrenderer はサレンダー処理のみを表す最小インタフェース
 type Surrenderer interface {
-	Surrender(*game.Game) error
+	Surrender(*game.Game, *game.GameConfig) error
 }
 
 // GameService はブラックジャックに必要な全ての処理を提供するインターフェース
@@ -83,10 +83,10 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 	return g, nil
 }
 
-// Stand はプレイヤーターン終了後、ディーラーが17以上になるまでカードを引き、
+// Stand はプレイヤーターン終了後、ディーラーが設定された閾値以上になるまでカードを引き、
 // 最終結果を判定して Game を返します。
 // g.State が PlayerTurn でない場合はエラーを返します。
-func (s *gameService) Stand(g *game.Game) error {
+func (s *gameService) Stand(g *game.Game, config *game.GameConfig) error {
 	// 基本整合性
 	if err := g.ValidateCore(); err != nil {
 		return err
@@ -102,8 +102,8 @@ func (s *gameService) Stand(g *game.Game) error {
 		return errors.New("invalid state: dealer must have exactly 1 card")
 	}
 
-	// ディーラーは17以上またはバースト（score==0）で止まる
-	for g.DealerHand.Score < 17 && g.DealerHand.Score != 0 {
+	// ディーラーは設定された閾値以上またはバースト（score==0）で止まる
+	for g.DealerHand.Score < config.DealerStandThreshold && g.DealerHand.Score != 0 {
 		card := s.deck.Deal()
 		g.DealerHand.Cards = append(g.DealerHand.Cards, card)
 		g.DealerHand.Score = game.CalculateScore(g.DealerHand.Cards)
@@ -150,7 +150,7 @@ func (s *gameService) Stand(g *game.Game) error {
 	return nil
 }
 
-func (s *gameService) Hit(g *game.Game) error {
+func (s *gameService) Hit(g *game.Game, config *game.GameConfig) error {
 	// 基本整合性
 	if err := g.ValidateCore(); err != nil {
 		return err
@@ -181,7 +181,7 @@ func (s *gameService) Hit(g *game.Game) error {
 
 	// 21 ちょうどの場合は自動的にスタンド相当の処理を行う
 	if playerScore == 21 {
-		return s.Stand(g)
+		return s.Stand(g, config)
 	}
 
 	// それ以外（21 未満）の場合は引き続きプレイヤーターン
@@ -191,7 +191,7 @@ func (s *gameService) Hit(g *game.Game) error {
 // Surrender はプレイヤーがサレンダー（降参）を選択した時の処理を行います。
 // 掛け金の半分を失い、ゲームを終了します。
 // プレイヤーは最初の2枚のカードを受け取った後にのみサレンダーできます。
-func (s *gameService) Surrender(g *game.Game) error {
+func (s *gameService) Surrender(g *game.Game, config *game.GameConfig) error {
 	// 基本整合性
 	if err := g.ValidateCore(); err != nil {
 		return err
