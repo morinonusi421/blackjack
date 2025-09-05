@@ -8,8 +8,11 @@ import (
 	"blackjack/api/services"
 )
 
-// StrategyRequest は現在のゲーム状態を入力として受け取る
-type StrategyRequest game.Game
+// StrategyRequest は現在のゲーム状態と設定を入力として受け取る
+type StrategyRequest struct {
+	Game   game.Game       `json:"game"`
+	Config game.GameConfig `json:"config"`
+}
 
 // StrategyResponse は各アクションの期待払い戻しを返す
 type StrategyResponse struct {
@@ -19,7 +22,7 @@ type StrategyResponse struct {
 }
 
 // StrategyHandler は最適戦略の期待払い戻しを返すハンドラ
-func StrategyHandler(advisor services.StrategyAdvisor) http.HandlerFunc {
+func StrategyHandler(strategyAdvisor services.StrategyAdvisor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -29,9 +32,13 @@ func StrategyHandler(advisor services.StrategyAdvisor) http.HandlerFunc {
 			return
 		}
 
-		g := game.Game(req)
+		// 不正なconfigじゃないかバリデーション
+		if req.Config.DealerStandThreshold < 1 || req.Config.DealerStandThreshold > 21 {
+			http.Error(w, "dealer stand threshold must be between 1 and 21", http.StatusBadRequest)
+			return
+		}
 
-		payouts, err := advisor.Advise(g)
+		payouts, err := strategyAdvisor.Advise(req.Game, &req.Config)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

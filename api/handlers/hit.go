@@ -8,8 +8,11 @@ import (
 	"blackjack/api/services"
 )
 
-// HitRequest はヒット時にクライアントから送られてくる現在のゲーム状態を表します。
-type HitRequest game.Game
+// HitRequest はヒット時にクライアントから送られてくる現在のゲーム状態と設定を表します。
+type HitRequest struct {
+	Game   game.Game       `json:"game"`
+	Config game.GameConfig `json:"config"`
+}
 
 // HitHandler は Hitter の Hit を呼び出すハンドラを返します。
 func HitHandler(gameSvc services.Hitter) http.HandlerFunc {
@@ -22,9 +25,9 @@ func HitHandler(gameSvc services.Hitter) http.HandlerFunc {
 			return
 		}
 
-		g := game.Game(req)
+		g := req.Game
 
-		if err := gameSvc.Hit(&g); err != nil {
+		if err := gameSvc.Hit(&g, &req.Config); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

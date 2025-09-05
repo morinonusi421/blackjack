@@ -8,8 +8,11 @@ import (
 	"blackjack/api/services"
 )
 
-// StandRequest はスタンド時にクライアントから送られてくる現在のゲーム状態を表します。
-type StandRequest game.Game
+// StandRequest はスタンド時にクライアントから送られてくる現在のゲーム状態と設定を表します。
+type StandRequest struct {
+	Game   game.Game       `json:"game"`
+	Config game.GameConfig `json:"config"`
+}
 
 // StandHandler は Stander の Stand を呼び出すハンドラを返します。
 func StandHandler(gameSvc services.Stander) http.HandlerFunc {
@@ -22,9 +25,9 @@ func StandHandler(gameSvc services.Stander) http.HandlerFunc {
 			return
 		}
 
-		g := game.Game(req)
+		g := req.Game
 
-		if err := gameSvc.Stand(&g); err != nil {
+		if err := gameSvc.Stand(&g, &req.Config); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

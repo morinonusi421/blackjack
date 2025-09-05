@@ -8,8 +8,11 @@ import (
 	"blackjack/api/services"
 )
 
-// SurrenderRequest はサレンダー時にクライアントから送られてくる現在のゲーム状態を表します。
-type SurrenderRequest game.Game
+// SurrenderRequest はサレンダー時にクライアントから送られてくる現在のゲーム状態と設定を表します。
+type SurrenderRequest struct {
+	Game   game.Game       `json:"game"`
+	Config game.GameConfig `json:"config"`
+}
 
 // SurrenderHandler は Surrenderer の Surrender を呼び出すハンドラを返します。
 func SurrenderHandler(gameSvc services.Surrenderer) http.HandlerFunc {
@@ -22,9 +25,9 @@ func SurrenderHandler(gameSvc services.Surrenderer) http.HandlerFunc {
 			return
 		}
 
-		g := game.Game(req)
+		g := req.Game
 
-		if err := gameSvc.Surrender(&g); err != nil {
+		if err := gameSvc.Surrender(&g, &req.Config); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

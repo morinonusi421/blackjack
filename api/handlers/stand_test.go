@@ -12,7 +12,7 @@ import (
 
 type mockStandService struct{}
 
-func (m mockStandService) Stand(g *game.Game) error {
+func (m mockStandService) Stand(g *game.Game, config *game.GameConfig) error {
 	// ダミーで引き分けを返す
 	g.State = game.Finished
 	g.Result = game.Push
@@ -39,7 +39,11 @@ func TestStandHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 
 	handler := StandHandler(svc)
 
-	body, _ := json.Marshal(g)
+	req_body := StandRequest{
+		Game:   g,
+		Config: game.GameConfig{DealerStandThreshold: 17},
+	}
+	body, _ := json.Marshal(req_body)
 	req := httptest.NewRequest(http.MethodPost, "/api/game/stand", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 

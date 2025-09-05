@@ -13,7 +13,7 @@ import (
 // mockHitService は Hit の挙動をテストするためのモックサービスです。
 type mockHitService struct{}
 
-func (m mockHitService) Hit(g *game.Game) error {
+func (m mockHitService) Hit(g *game.Game, config *game.GameConfig) error {
 	// テスト用に単純にプレイヤーバーストさせる
 	g.State = game.Finished
 	g.Result = game.DealerWin
@@ -40,7 +40,11 @@ func TestHitHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 
 	handler := HitHandler(svc)
 
-	body, _ := json.Marshal(g)
+	req_body := HitRequest{
+		Game:   g,
+		Config: game.GameConfig{DealerStandThreshold: 17},
+	}
+	body, _ := json.Marshal(req_body)
 	req := httptest.NewRequest(http.MethodPost, "/api/game/hit", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 

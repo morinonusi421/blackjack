@@ -12,7 +12,7 @@ import (
 
 type mockSurrenderService struct{}
 
-func (m mockSurrenderService) Surrender(g *game.Game) error {
+func (m mockSurrenderService) Surrender(g *game.Game, config *game.GameConfig) error {
 	// ダミーでサレンダー結果を返す
 	g.State = game.Finished
 	g.Result = game.Surrender
@@ -40,7 +40,12 @@ func TestSurrenderHandler_ReturnsUpdatedGameJSON(t *testing.T) {
 
 	handler := SurrenderHandler(svc)
 
-	body, _ := json.Marshal(g)
+	req_body := SurrenderRequest{
+		Game:   g,
+		Config: game.GameConfig{DealerStandThreshold: 17},
+	}
+
+	body, _ := json.Marshal(req_body)
 	req := httptest.NewRequest(http.MethodPost, "/api/game/surrender", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
