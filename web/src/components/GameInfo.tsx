@@ -55,6 +55,7 @@ export default function GameInfo({ game }: GameInfoProps) {
         }}
       >
         {cards.map((c, idx) => (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             key={`${c.suit}-${c.rank}-${idx}`}
             src={getCardImagePath(c)}

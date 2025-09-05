@@ -8,11 +8,18 @@ import StartGameForm from '../components/StartGameForm';
 import Balance from '../components/Balance';
 import ActionButtons from '../components/ActionButtons';
 import StrategyAdvice from '../components/StrategyAdvice';
+import GameSettings from '../components/GameSettings';
+import { DEFAULT_DEALER_THRESHOLD } from '../constants/config';
 
-export default function GameClient() {
+export interface GameClientProps {
+  onThresholdChange?: (threshold: number) => void;
+}
+
+export default function GameClient({ onThresholdChange }: GameClientProps) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const { game, loading, error, startGame, stand, hit, surrender, balance, advice, getAdvice } = useGame(apiUrl);
   const [bet, setBet] = useState(100);
+  const [dealerThreshold, setDealerThreshold] = useState(DEFAULT_DEALER_THRESHOLD);
+  const { game, loading, error, startGame, stand, hit, surrender, balance, advice, getAdvice, debouncedRefreshAdviceIfVisible } = useGame(apiUrl, dealerThreshold);
 
   const handleStart = () => {
     startGame(bet);
@@ -86,11 +93,18 @@ export default function GameClient() {
                 textAlign: 'center',
               }}
             >
-              答えを見る を押すと、ここに期待払い戻しが表示されます。
+              答えを見る を押すと、ここに期待払い戻しが表示されます。（ディーラー閾値: {dealerThreshold}）
             </section>
           )}
         </div>
       </div>
+
+      {/* ゲーム設定 */}
+      <GameSettings threshold={dealerThreshold} onThresholdChange={(newThreshold) => {
+        setDealerThreshold(newThreshold);
+        debouncedRefreshAdviceIfVisible(newThreshold);
+        onThresholdChange?.(newThreshold);
+      }} />
     </section>
   );
 } 

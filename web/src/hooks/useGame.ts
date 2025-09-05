@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { Game, StrategyAdvice } from '../types/game';
+import { DEFAULT_DEALER_THRESHOLD } from '../constants/config';
 
 /**
  * ブラックジャックの新規ゲーム開始を扱うカスタムフック。
  *
  * @param apiUrl API のベース URL（例: https://example.com）
+ * @param dealerThreshold ディーラーのスタンド閾値
  */
-export default function useGame(apiUrl?: string | null) {
+export default function useGame(apiUrl?: string | null, dealerThreshold?: number) {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +35,21 @@ export default function useGame(apiUrl?: string | null) {
       setError(null);
 
       try {
+        // ゲーム進行のAPIには設定を含める
+        let requestBody;
+        if (endpoint === '/api/game/new') {
+          requestBody = payload as object; // 新規ゲーム開始時はconfigは不要
+        } else {
+          requestBody = {
+            game: payload,
+            config: { dealer_stand_threshold: dealerThreshold || DEFAULT_DEALER_THRESHOLD }
+          };
+        }
+
         const res = await fetch(`${apiUrl}${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestBody),
         });
 
         if (!res.ok) throw new Error('APIからの応答がありませんでした');
@@ -59,7 +72,7 @@ export default function useGame(apiUrl?: string | null) {
         setLoading(false);
       }
     },
-    [apiUrl],
+    [apiUrl, dealerThreshold],
   );
 
   /**
@@ -146,10 +159,19 @@ export default function useGame(apiUrl?: string | null) {
     setLoading(true);
     setError(null);
     try {
+      // ローカル設定を使用
+      const config = {
+        dealer_stand_threshold: dealerThreshold || DEFAULT_DEALER_THRESHOLD,
+      };
+
+      // ゲーム状態と設定を一緒に送信
       const res = await fetch(`${apiUrl}/api/strategy/advise`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(game),
+        body: JSON.stringify({
+          game: game,
+          config: config,
+        }),
       });
       if (!res.ok) throw new Error('APIからの応答がありませんでした');
       const data: StrategyAdvice = await res.json();
@@ -163,7 +185,67 @@ export default function useGame(apiUrl?: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, game]);
+  }, [apiUrl, game, dealerThreshold]);
+
+  const clearAdvice = useCallback(() => {
+    setAdvice(null);
+  }, []);
+
+  const refreshAdviceIfVisible = useCallback(async () => {
+    if (advice && game) {
+      // 既にアドバイスが表示されている場合は、新しい設定で再計算
+      await getAdvice();
+    }
+  }, [advice, game, getAdvice]);
+
+  // デバウンス用のタイマーref
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedRefreshAdviceIfVisible = useCallback((newThreshold: number) => {
+    // 既存のタイマーをクリア
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // 新しいタイマーを設定（100ms後に実行）
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (advice && game) {
+        // 最新の閾値を使用してアドバイスを再計算
+        const config = {
+          dealer_stand_threshold: newThreshold || DEFAULT_DEALER_THRESHOLD,
+        };
+
+        setLoading(true);
+        setError(null);
+        
+        fetch(`${apiUrl}/api/strategy/advise`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            game: game,
+            config: config,
+          }),
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('APIからの応答がありませんでした');
+          return res.json();
+        })
+        .then((data: StrategyAdvice) => {
+          setAdvice(data);
+        })
+        .catch((err: unknown) => {
+          if (err instanceof Error) {
+            setError(err.message);
+          } else {
+            setError('不明なエラーが発生しました');
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+      }
+    }, 100);
+  }, [advice, game, apiUrl]);
 
   return {
     game,
@@ -176,5 +258,8 @@ export default function useGame(apiUrl?: string | null) {
     balance,
     advice,
     getAdvice,
+    clearAdvice,
+    refreshAdviceIfVisible,
+    debouncedRefreshAdviceIfVisible,
   } as const;
 } 
