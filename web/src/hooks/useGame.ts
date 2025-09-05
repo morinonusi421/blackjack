@@ -14,7 +14,7 @@ export default function useGame(apiUrl?: string | null, dealerThreshold?: number
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [balance, setBalance] = useState(10000);
+  const [balance, setBalance] = useState(1000);
   const [advice, setAdvice] = useState<StrategyAdvice | null>(null);
 
   /**
