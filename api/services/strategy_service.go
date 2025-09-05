@@ -7,8 +7,8 @@ import (
 
 // StrategyAdvisor は現在のゲーム状態から各アクションの期待払い戻しを返すインタフェース
 type StrategyAdvisor interface {
-	// Advise はゲーム状態を入力に、期待払い戻しを返す
-	Advise(g game.Game) (strategy.StrategyExpectedPayouts, error)
+	// Advise はゲーム状態と設定を入力に、期待払い戻しを返す
+	Advise(g game.Game, config *game.GameConfig) (strategy.StrategyExpectedPayouts, error)
 }
 
 type strategyService struct {
@@ -21,7 +21,7 @@ func NewStrategyService() StrategyAdvisor {
 }
 
 // Advise は game.Game から strategy.StrategyState に変換し、期待払い戻しを計算して返します。
-func (s *strategyService) Advise(g game.Game) (strategy.StrategyExpectedPayouts, error) {
+func (s *strategyService) Advise(g game.Game, config *game.GameConfig) (strategy.StrategyExpectedPayouts, error) {
 	// 基本整合性
 	if err := (&g).ValidateCore(); err != nil {
 		return strategy.StrategyExpectedPayouts{}, err
@@ -50,7 +50,7 @@ func (s *strategyService) Advise(g game.Game) (strategy.StrategyExpectedPayouts,
 		HasHit: hasHit,
 	}
 
-	payouts := s.calc.CalculateAllExpectedPayouts(st)
+	payouts := s.calc.CalculateAllExpectedPayouts(st, config)
 
 	// 実際の払戻額を返すために、サービス層でスケーリング
 	betF := float64(g.Bet)

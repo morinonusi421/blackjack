@@ -2,34 +2,51 @@ package strategy
 
 import (
 	"sync"
+
+	"blackjack/api/game"
 )
 
 // Calculator はブラックジャックの最適戦略を計算する構造体
 // メモ化テーブルを内部に保持し、スレッドセーフな計算を提供する
+// 完全にステートレスで設定は各メソッドのパラメータとして受け取る
 type Calculator struct {
-	dealerMemo             map[StrategyHand]map[int]float64
+	dealerMemo             map[dealerMemoKey]map[int]float64
 	standPayoutMemo        map[standPayoutKey]float64
-	allExpectedPayoutsMemo map[StrategyState]StrategyExpectedPayouts
+	allExpectedPayoutsMemo map[strategyStateKey]StrategyExpectedPayouts
 	mu                     sync.RWMutex
 }
+
+type dealerMemoKey struct {
+	hand   StrategyHand
+	config game.GameConfig
+}
+
 type standPayoutKey struct {
 	playerScore int
 	dealerHand  StrategyHand
+	config      game.GameConfig
+}
+
+type strategyStateKey struct {
+	state  StrategyState
+	config game.GameConfig
 }
 
 // NewCalculator は新しいCalculatorのインスタンスを生成
 func NewCalculator() *Calculator {
 	return &Calculator{
-		dealerMemo:             make(map[StrategyHand]map[int]float64),
+		dealerMemo:             make(map[dealerMemoKey]map[int]float64),
 		standPayoutMemo:        make(map[standPayoutKey]float64),
-		allExpectedPayoutsMemo: make(map[StrategyState]StrategyExpectedPayouts),
+		allExpectedPayoutsMemo: make(map[strategyStateKey]StrategyExpectedPayouts),
 	}
 }
 
 // ディーラーのアップカードから、ディラーのスコア分布を計算する
-func (c *Calculator) GetDealerScoreDistribution(dealerHand StrategyHand) map[int]float64 {
+func (c *Calculator) GetDealerScoreDistribution(dealerHand StrategyHand, config *game.GameConfig) map[int]float64 {
+	key := dealerMemoKey{hand: dealerHand, config: *config}
+
 	c.mu.RLock()
-	if dist, found := c.dealerMemo[dealerHand]; found {
+	if dist, found := c.dealerMemo[key]; found {
 		c.mu.RUnlock()
 		return dist
 	}
@@ -37,17 +54,17 @@ func (c *Calculator) GetDealerScoreDistribution(dealerHand StrategyHand) map[int
 
 	currentScore := calculateScore(dealerHand)
 
-	if currentScore >= 17 {
+	if currentScore >= config.DealerStandThreshold {
 		result := map[int]float64{currentScore: 1.0}
 		c.mu.Lock()
-		c.dealerMemo[dealerHand] = result
+		c.dealerMemo[key] = result
 		c.mu.Unlock()
 		return result
 	}
 	if currentScore == 0 {
 		result := map[int]float64{0: 1.0}
 		c.mu.Lock()
-		c.dealerMemo[dealerHand] = result
+		c.dealerMemo[key] = result
 		c.mu.Unlock()
 		return result
 	}
@@ -57,22 +74,22 @@ func (c *Calculator) GetDealerScoreDistribution(dealerHand StrategyHand) map[int
 		nextSum := dealerHand.Sum + card
 		nextHasAce := dealerHand.HasAce || (card == 1)
 		nextHand := StrategyHand{Sum: nextSum, HasAce: nextHasAce}
-		subDist := c.GetDealerScoreDistribution(nextHand)
+		subDist := c.GetDealerScoreDistribution(nextHand, config)
 		for score, subProb := range subDist {
 			result[score] += prob * subProb
 		}
 	}
 	c.mu.Lock()
-	c.dealerMemo[dealerHand] = result
+	c.dealerMemo[key] = result
 	c.mu.Unlock()
 	return result
 }
 
 // プレイヤーのスコアとディーラーの手札から、スタンド時の期待払い戻し（payout）を計算する
-func (c *Calculator) CalculateStandExpectedPayout(playerScore int, dealerHand StrategyHand) float64 {
+func (c *Calculator) CalculateStandExpectedPayout(playerScore int, dealerHand StrategyHand, config *game.GameConfig) float64 {
 
 	// キャッシュがあれば、計算せずにそれを再利用
-	key := standPayoutKey{playerScore: playerScore, dealerHand: dealerHand}
+	key := standPayoutKey{playerScore: playerScore, dealerHand: dealerHand, config: *config}
 	c.mu.RLock()
 	if v, ok := c.standPayoutMemo[key]; ok {
 		c.mu.RUnlock()
@@ -86,7 +103,7 @@ func (c *Calculator) CalculateStandExpectedPayout(playerScore int, dealerHand St
 	}
 
 	// ディーラーのスコア分布を計算
-	dealerDist := c.GetDealerScoreDistribution(dealerHand)
+	dealerDist := c.GetDealerScoreDistribution(dealerHand, config)
 
 	// ディーラーのスコア分布とプレイヤーのスコアを比較して、期待払い戻しを計算
 	expectedPayout := 0.0
@@ -106,11 +123,12 @@ func (c *Calculator) CalculateStandExpectedPayout(playerScore int, dealerHand St
 }
 
 // ゲームの状態から、各アクションの期待払い戻しを計算する
-func (c *Calculator) CalculateAllExpectedPayouts(state StrategyState) StrategyExpectedPayouts {
+func (c *Calculator) CalculateAllExpectedPayouts(state StrategyState, config *game.GameConfig) StrategyExpectedPayouts {
 
 	// キャッシュがあれば、計算せずにそれを再利用
+	key := strategyStateKey{state: state, config: *config}
 	c.mu.RLock()
-	if v, ok := c.allExpectedPayoutsMemo[state]; ok {
+	if v, ok := c.allExpectedPayoutsMemo[key]; ok {
 		c.mu.RUnlock()
 		return v
 	}
@@ -133,13 +151,13 @@ func (c *Calculator) CalculateAllExpectedPayouts(state StrategyState) StrategyEx
 			expectedPayouts.BestPayout = 0.0
 		}
 		c.mu.Lock()
-		c.allExpectedPayoutsMemo[state] = expectedPayouts
+		c.allExpectedPayoutsMemo[key] = expectedPayouts
 		c.mu.Unlock()
 		return expectedPayouts
 	}
 
 	// スタンドの期待値を計算
-	standPayout := c.CalculateStandExpectedPayout(playerScore, state.Dealer)
+	standPayout := c.CalculateStandExpectedPayout(playerScore, state.Dealer, config)
 	expectedPayouts.StandPayout = standPayout
 
 	// サレンダーの期待値を計算 (ヒットしている場合はサレンダーができないので、期待利得を0としておく)
@@ -156,7 +174,7 @@ func (c *Calculator) CalculateAllExpectedPayouts(state StrategyState) StrategyEx
 		nextHasAce := state.Player.HasAce || (card == 1)
 		nextHand := StrategyHand{Sum: nextSum, HasAce: nextHasAce}
 		nextState := StrategyState{Player: nextHand, Dealer: state.Dealer, HasHit: true}
-		hit += c.CalculateAllExpectedPayouts(nextState).BestPayout * prob
+		hit += c.CalculateAllExpectedPayouts(nextState, config).BestPayout * prob
 	}
 	expectedPayouts.HitPayout = hit
 
@@ -172,7 +190,7 @@ func (c *Calculator) CalculateAllExpectedPayouts(state StrategyState) StrategyEx
 
 	// キャッシュに結果を保存
 	c.mu.Lock()
-	c.allExpectedPayoutsMemo[state] = expectedPayouts
+	c.allExpectedPayoutsMemo[key] = expectedPayouts
 	c.mu.Unlock()
 	return expectedPayouts
 }

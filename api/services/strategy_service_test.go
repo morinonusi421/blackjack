@@ -17,7 +17,8 @@ func TestStrategyService_Advise_ConvertsGameToStrategyState(t *testing.T) {
 		Bet:        100,
 	}
 
-	payouts, err := svc.Advise(g)
+	config := &game.GameConfig{DealerStandThreshold: 17}
+	payouts, err := svc.Advise(g, config)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -36,16 +37,17 @@ func TestStrategyService_Advise_ConvertsGameToStrategyState(t *testing.T) {
 
 func TestStrategyService_Advise_InvalidInput(t *testing.T) {
 	svc := NewStrategyService()
+	config := &game.GameConfig{DealerStandThreshold: 17}
 
 	// ディーラーのカードが無い
 	g1 := game.Game{PlayerHand: game.Hand{Cards: []game.Card{{Suit: game.Spade, Rank: "A"}, {Suit: game.Heart, Rank: "9"}}}, DealerHand: game.Hand{Cards: []game.Card{}}}
-	if _, err := svc.Advise(g1); err == nil {
+	if _, err := svc.Advise(g1, config); err == nil {
 		t.Fatalf("expected error for missing dealer upcard")
 	}
 
 	// プレイヤーのカードが1枚
 	g2 := game.Game{PlayerHand: game.Hand{Cards: []game.Card{{Suit: game.Spade, Rank: "A"}}}, DealerHand: game.Hand{Cards: []game.Card{{Suit: game.Diamond, Rank: "7"}}}}
-	if _, err := svc.Advise(g2); err == nil {
+	if _, err := svc.Advise(g2, config); err == nil {
 		t.Fatalf("expected error for insufficient player cards")
 	}
 }
