@@ -9,9 +9,11 @@ import (
 func TestStrategyService_Advise_ConvertsGameToStrategyState(t *testing.T) {
 	svc := NewStrategyService()
 
+	ph := []game.Card{{Suit: game.Spade, Rank: "A"}, {Suit: game.Heart, Rank: "9"}}
+	dh := []game.Card{{Suit: game.Diamond, Rank: "7"}}
 	g := game.Game{
-		PlayerHand: game.Hand{Cards: []game.Card{{Suit: game.Spade, Rank: "A"}, {Suit: game.Heart, Rank: "9"}}},
-		DealerHand: game.Hand{Cards: []game.Card{{Suit: game.Diamond, Rank: "7"}}},
+		PlayerHand: game.Hand{Cards: ph, Score: game.CalculateScore(ph)},
+		DealerHand: game.Hand{Cards: dh, Score: game.CalculateScore(dh)},
 		State:      game.PlayerTurn,
 		Result:     game.Pending,
 		Bet:        100,

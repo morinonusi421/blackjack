@@ -20,10 +20,16 @@ func NewStrategyService() StrategyAdvisor {
 	return &strategyService{calc: strategy.NewCalculator()}
 }
 
-// Advise は game.Game から strategy.StrategyState に変換し、期待払い戻しを計算して返します。
+// Advise は Game を StrategyState に変換して期待払い戻しを返す。
 func (s *strategyService) Advise(g game.Game, config *game.GameConfig) (strategy.StrategyExpectedPayouts, error) {
-	// 基本整合性
+	// 期待値計算は常に整合したスコアを前提とする（外部入力が正しいことを要求）
+
+	// 基本整合性（終了状態も許容）
 	if err := (&g).ValidateCore(); err != nil {
+		return strategy.StrategyExpectedPayouts{}, err
+	}
+	// 進行中前提の検証
+	if err := (&g).ValidateInProgress(); err != nil {
 		return strategy.StrategyExpectedPayouts{}, err
 	}
 

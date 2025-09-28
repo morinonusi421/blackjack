@@ -59,16 +59,23 @@ type Game struct {
 	Payout        int       `json:"payout"` // 払戻金（勝利額／Push はベット返却）
 }
 
-// ValidateCore はゲーム状態の基本整合性を検証する
-// - 手札の枚数（プレイヤー>=2, ディーラー>=1）
-// - State/Result の矛盾がない（PlayerTurn↔Pending, Finished↔非Pending）
-// - Bet と Payout の簡易整合性
+// ValidateCore は終了状態を含めた基本整合性のみを検証する。
 func (g *Game) ValidateCore() error {
 	if len(g.PlayerHand.Cards) < 2 {
 		return errors.New("invalid state: player must have at least 2 cards")
 	}
 	if len(g.DealerHand.Cards) < 1 {
 		return errors.New("invalid state: dealer must have at least 1 card")
+	}
+
+	// スコアとカード配列の整合性
+	computedPlayer := CalculateScore(g.PlayerHand.Cards)
+	if g.PlayerHand.Score != computedPlayer {
+		return errors.New("invalid state: player score does not match cards")
+	}
+	computedDealer := CalculateScore(g.DealerHand.Cards)
+	if g.DealerHand.Score != computedDealer {
+		return errors.New("invalid state: dealer score does not match cards")
 	}
 	if g.State == PlayerTurn && g.Result != Pending {
 		return errors.New("invalid state: player turn but result is not pending")
@@ -81,6 +88,23 @@ func (g *Game) ValidateCore() error {
 	}
 	if g.Payout < 0 {
 		return errors.New("invalid state: payout must be non-negative")
+	}
+	return nil
+}
+
+// ValidateInProgress は進行中（PlayerTurn/Pending）の前提を検証する。
+func (g *Game) ValidateInProgress() error {
+	if g.State != PlayerTurn {
+		return errors.New("invalid state: expected player turn in progress")
+	}
+	if g.Result != Pending {
+		return errors.New("invalid state: expected pending result in progress")
+	}
+	if len(g.DealerHand.Cards) != 1 {
+		return errors.New("invalid state: dealer must have exactly 1 card during player turn")
+	}
+	if g.PlayerHand.Score == 0 {
+		return errors.New("invalid state: player already busted during player turn")
 	}
 	return nil
 }
@@ -140,4 +164,10 @@ func CalculateScore(cards []Card) int {
 	}
 
 	return score
+}
+
+// RecalculateScores は手札スコアを Cards から再計算して反映する。
+func (g *Game) RecalculateScores() {
+	g.PlayerHand.Score = CalculateScore(g.PlayerHand.Cards)
+	g.DealerHand.Score = CalculateScore(g.DealerHand.Cards)
 }

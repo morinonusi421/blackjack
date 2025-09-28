@@ -46,8 +46,7 @@ func NewGameService(deck game.Deck) GameService {
 	return &gameService{deck: deck}
 }
 
-// NewGame は掛け金を受け取り、新しいゲームを初期化して返します。
-// bet が 1 未満の場合はエラーを返します。
+// NewGame は掛け金から新しいゲームを生成する。
 func (s *gameService) NewGame(bet int) (game.Game, error) {
 	if bet <= 0 {
 		return game.Game{}, errors.New("bet must be positive")
@@ -83,23 +82,10 @@ func (s *gameService) NewGame(bet int) (game.Game, error) {
 	return g, nil
 }
 
-// Stand はプレイヤーターン終了後、ディーラーが設定された閾値以上になるまでカードを引き、
-// 最終結果を判定して Game を返します。
-// g.State が PlayerTurn でない場合はエラーを返します。
+// Stand はプレイヤーターンを終了し、ディーラー処理と結果判定を行う。
 func (s *gameService) Stand(g *game.Game, config *game.GameConfig) error {
-	// 基本整合性
-	if err := g.ValidateCore(); err != nil {
+	if err := validateActionPreconditions(g, config); err != nil {
 		return err
-	}
-	// アクション固有の前提
-	if g.State != game.PlayerTurn {
-		return errors.New("invalid state: game is not in player turn")
-	}
-	if g.Result != game.Pending {
-		return errors.New("invalid state: game already finished")
-	}
-	if len(g.DealerHand.Cards) != 1 {
-		return errors.New("invalid state: dealer must have exactly 1 card")
 	}
 
 	// ディーラーは設定された閾値以上またはバースト（score==0）で止まる
@@ -151,16 +137,8 @@ func (s *gameService) Stand(g *game.Game, config *game.GameConfig) error {
 }
 
 func (s *gameService) Hit(g *game.Game, config *game.GameConfig) error {
-	// 基本整合性
-	if err := g.ValidateCore(); err != nil {
+	if err := validateActionPreconditions(g, config); err != nil {
 		return err
-	}
-	// アクション固有の前提
-	if g.State != game.PlayerTurn {
-		return errors.New("invalid state: game is not in player turn")
-	}
-	if g.Result != game.Pending {
-		return errors.New("invalid state: game already finished")
 	}
 
 	// 1 枚カードを配る
@@ -188,20 +166,10 @@ func (s *gameService) Hit(g *game.Game, config *game.GameConfig) error {
 	return nil
 }
 
-// Surrender はプレイヤーがサレンダー（降参）を選択した時の処理を行います。
-// 掛け金の半分を失い、ゲームを終了します。
-// プレイヤーは最初の2枚のカードを受け取った後にのみサレンダーできます。
+// Surrender は初手2枚直後のみ許可される降参。
 func (s *gameService) Surrender(g *game.Game, config *game.GameConfig) error {
-	// 基本整合性
-	if err := g.ValidateCore(); err != nil {
+	if err := validateActionPreconditions(g, config); err != nil {
 		return err
-	}
-	// アクション固有の前提
-	if g.State != game.PlayerTurn {
-		return errors.New("invalid state: game is not in player turn")
-	}
-	if g.Result != game.Pending {
-		return errors.New("invalid state: game already finished")
 	}
 	if len(g.PlayerHand.Cards) != 2 {
 		return errors.New("invalid state: surrender is only allowed with initial 2 cards")
@@ -213,5 +181,26 @@ func (s *gameService) Surrender(g *game.Game, config *game.GameConfig) error {
 	g.ResultMessage = game.MessagePlayerSurrendered
 	g.Payout = g.Bet / 2 // 掛け金の半分を返却
 
+	return nil
+}
+
+// validateActionPreconditions は共通の事前条件（Core + InProgress + Config範囲）を検証する。
+func validateActionPreconditions(g *game.Game, config *game.GameConfig) error {
+	if g == nil {
+		return errors.New("invalid argument: game is nil")
+	}
+	if config == nil {
+		return errors.New("invalid argument: config is nil")
+	}
+	if err := g.ValidateCore(); err != nil {
+		return err
+	}
+	if err := g.ValidateInProgress(); err != nil {
+		return err
+	}
+	// DealerStandThreshold は 2〜21 の範囲に制限（一般的には 17）
+	if config.DealerStandThreshold < 2 || config.DealerStandThreshold > 21 {
+		return errors.New("invalid config: dealer stand threshold must be between 2 and 21")
+	}
 	return nil
 }
